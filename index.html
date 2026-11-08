@@ -2,13 +2,12 @@
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>FRANILITICS • Pitching Analytics Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <!-- ADDED COMPRESSION LIBRARY -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
   <script>
     tailwind.config = {
@@ -17,10 +16,14 @@
     }
   </script>
   <style>
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    /* Hide scrollbar for mobile header buttons */
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
     .sort-icon.active { color: #38bdf8; }
     
     .glass-card {
@@ -32,51 +35,63 @@
     .text-glow-amber { text-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
     .text-glow-rose { text-shadow: 0 0 12px rgba(244, 63, 94, 0.4); }
     
-    .table-container { border-radius: 0.5rem; overflow: hidden; border: 1px solid rgba(51, 65, 85, 0.5); }
-    th { letter-spacing: 0.05em; font-size: 0.65rem; }
+    .table-container { border-radius: 0.5rem; overflow-x: auto; border: 1px solid rgba(51, 65, 85, 0.5); -webkit-overflow-scrolling: touch; }
+    th { letter-spacing: 0.05em; font-size: 0.65rem; white-space: nowrap; }
+    td { white-space: nowrap; }
   </style>
 </head>
-<body class="bg-gradient-to-br from-[#050914] to-[#0a101d] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30">
+<body class="bg-gradient-to-br from-[#050914] to-[#0a101d] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 pb-safe">
 
-  <header class="border-b border-slate-800/80 bg-[#070b14]/80 backdrop-blur-md sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
-    <div class="max-w-[95%] mx-auto px-4 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-3 cursor-pointer group" onclick="setListView()">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(14,165,233,0.3)] ring-1 ring-white/20 group-hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all">
-          <i class="fa-solid fa-baseball text-lg"></i>
-        </div>
-        <div>
-          <div class="flex items-center gap-2">
-            <span class="font-black text-lg tracking-wider text-white drop-shadow-md">FRANILITICS</span>
+  <!-- MOBILE-OPTIMIZED HEADER -->
+  <header class="border-b border-slate-800/80 bg-[#070b14]/90 backdrop-blur-md sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)] pt-safe">
+    <div class="max-w-[95%] mx-auto px-2 md:px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
+      
+      <!-- Top Row Mobile: Logo + Status -->
+      <div class="flex items-center justify-between w-full md:w-auto">
+        <div class="flex items-center gap-3 cursor-pointer group" onclick="setListView()">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(14,165,233,0.3)] ring-1 ring-white/20 group-hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all shrink-0">
+            <i class="fa-solid fa-baseball text-lg"></i>
           </div>
-          <p class="text-[10px] text-sky-400/80 font-mono tracking-widest uppercase leading-none mt-1" id="global-pitch-count">0 Pitches Database</p>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-lg tracking-wider text-white drop-shadow-md leading-none">FRANILITICS</span>
+            </div>
+            <p class="text-[10px] text-sky-400/80 font-mono tracking-widest uppercase leading-none mt-1" id="global-pitch-count">0 Pitches Database</p>
+          </div>
+        </div>
+        
+        <div id="cloud-status" class="px-2 py-1.5 md:hidden rounded-lg text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center gap-1.5 shadow-inner uppercase tracking-widest shrink-0">
+          <i class="fa-solid fa-cloud"></i> Local
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <div id="cloud-status" class="px-3 py-2 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex">
+      
+      <!-- Bottom Row Mobile: Horizontal Scrollable Action Buttons -->
+      <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full md:w-auto pb-1 md:pb-0">
+        <div id="cloud-status-desktop" class="px-3 py-2 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 hidden md:flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 shrink-0">
           <i class="fa-solid fa-cloud"></i> Local Mode
         </div>
         
-        <button onclick="triggerCloudShare()" class="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600/90 hover:bg-indigo-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(79,70,229,0.2)] border border-indigo-500/50">
-          <i class="fa-solid fa-share-nodes"></i> <span>Share Report</span>
+        <button onclick="triggerCloudShare()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-indigo-600/90 hover:bg-indigo-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(79,70,229,0.2)] border border-indigo-500/50 shrink-0">
+          <i class="fa-solid fa-share-nodes"></i> <span>Share</span>
         </button>
 
-        <button onclick="setListView()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50">
+        <button onclick="setListView()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50 shrink-0">
           <i class="fa-solid fa-users"></i> <span>Roster</span>
         </button>
-        <button onclick="setMasterView()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50">
-          <i class="fa-solid fa-chart-line"></i> <span>Leaderboard</span>
+        <button onclick="setMasterView()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50 shrink-0">
+          <i class="fa-solid fa-chart-line"></i> <span>Staff Leaderboard</span>
         </button>
-        <button onclick="openUploadModal()" class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600/90 hover:bg-emerald-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(16,185,129,0.2)] border border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+        <button onclick="openUploadModal()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-emerald-600/90 hover:bg-emerald-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(16,185,129,0.2)] border border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.4)] shrink-0">
           <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload CSV</span>
         </button>
       </div>
     </div>
   </header>
 
-  <main class="flex-1 max-w-[95%] w-full mx-auto p-4 space-y-6">
+  <main class="flex-1 max-w-[100%] md:max-w-[95%] w-full mx-auto p-3 md:p-4 space-y-6 pb-12">
 
     <!-- VIEW: ROSTER LIST -->
-    <div id="view-roster" class="space-y-4">
+    <div id="view-roster" class="space-y-4 hidden">
       <div class="flex flex-col md:flex-row md:justify-between md:items-center pb-4 border-b border-slate-800/70 gap-4">
         <div>
           <h1 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Pitcher Roster</h1>
@@ -84,121 +99,121 @@
         </div>
         <div class="relative w-full md:w-72">
           <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
-          <input type="text" id="rosterSearchInput" oninput="filterRosterCards()" placeholder="Search Pitchers..." class="w-full bg-[#0f172a]/80 backdrop-blur border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition shadow-inner">
+          <input type="text" id="rosterSearchInput" oninput="filterRosterCards()" placeholder="Search Pitchers..." class="w-full bg-[#0f172a]/80 backdrop-blur border border-slate-700/80 rounded-xl pl-9 pr-4 py-3 text-sm text-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition shadow-inner">
         </div>
       </div>
-      <div id="roster-card-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+      <div id="roster-card-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"></div>
     </div>
 
     <!-- VIEW: INDIVIDUAL PITCHER REPORT -->
     <div id="view-pitcher" class="hidden space-y-5">
       
       <!-- Player Header & Filters -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
         <div class="absolute top-0 right-0 w-96 h-96 bg-sky-600/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
         
-        <div class="flex items-center gap-5 relative z-10">
-          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(14,165,233,0.4)] ring-2 ring-white/10" id="pitcher-avatar-initials">--</div>
-          <div>
-            <div class="flex items-center gap-3">
-              <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md" id="pitcher-display-name">--</h2>
-              <span id="pitcher-hand-badge" class="px-2.5 py-1 rounded-md text-xs font-black tracking-widest bg-slate-800 text-sky-400 border border-sky-900/50 shadow-sm">RHP</span>
-              <button onclick="deleteCurrentPitcher()" class="ml-2 w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center border border-rose-500/30" title="Delete Pitcher Data">
-                <i class="fa-solid fa-trash-can text-sm"></i>
-              </button>
+        <div class="flex items-center justify-between w-full lg:w-auto relative z-10">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-2xl md:text-3xl font-black shadow-[0_0_20px_rgba(14,165,233,0.4)] ring-2 ring-white/10 shrink-0" id="pitcher-avatar-initials">--</div>
+            <div>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h2 class="text-2xl md:text-3xl font-black text-white tracking-tight drop-shadow-md leading-none" id="pitcher-display-name">--</h2>
+                <span id="pitcher-hand-badge" class="px-2 py-0.5 rounded-md text-[10px] md:text-xs font-black tracking-widest bg-slate-800 text-sky-400 border border-sky-900/50 shadow-sm">RHP</span>
+              </div>
+              <div class="text-[10px] md:text-xs text-sky-200/60 font-mono mt-1.5 uppercase tracking-wider font-semibold" id="pitcher-total-pitches">-- Pitches Logged</div>
             </div>
-            <div class="text-xs text-sky-200/60 font-mono mt-1.5 uppercase tracking-wider font-semibold" id="pitcher-total-pitches">-- Pitches Logged</div>
           </div>
+          <button onclick="deleteCurrentPitcher()" class="lg:hidden ml-2 w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center border border-rose-500/30 shrink-0" title="Delete Pitcher Data">
+            <i class="fa-solid fa-trash-can text-sm"></i>
+          </button>
         </div>
         
-        <div class="flex flex-wrap items-center gap-3 relative z-10">
-          <div class="hidden xl:flex items-center gap-4 text-[10px] font-mono text-slate-300 bg-black/40 px-4 py-2 rounded-xl border border-slate-700/50 shadow-inner">
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span> Plus / Ace</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span> D1 Avg</span>
-            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span> Focus Area</span>
-          </div>
+        <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 relative z-10 w-full lg:w-auto">
+          <button onclick="deleteCurrentPitcher()" class="hidden lg:flex w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition items-center justify-center border border-rose-500/30 shrink-0" title="Delete Pitcher Data">
+            <i class="fa-solid fa-trash-can text-sm"></i>
+          </button>
 
-          <select id="outingSelect" onchange="onOutingChange()" class="bg-[#0f172a] border border-slate-600 rounded-xl font-mono text-xs text-slate-200 px-4 py-2.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition cursor-pointer shadow-inner">
+          <select id="outingSelect" onchange="onOutingChange()" class="w-full sm:w-auto bg-[#0f172a] border border-slate-600 rounded-xl font-mono text-xs text-slate-200 px-4 py-3 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition cursor-pointer shadow-inner appearance-none">
             <option value="latest">Latest Outing</option>
             <option value="all">All Outings</option>
           </select>
           
-          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-xs shadow-inner">
-            <button onclick="setBatterHandFilter('ALL')" id="filter-hand-all" class="px-3 py-1.5 rounded-lg bg-sky-500 text-white font-bold transition shadow-sm">All</button>
-            <button onclick="setBatterHandFilter('Right')" id="filter-hand-rhh" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">vs RHH</button>
-            <button onclick="setBatterHandFilter('Left')" id="filter-hand-lhh" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">vs LHH</button>
+          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-[10px] md:text-xs shadow-inner justify-between sm:justify-start">
+            <button onclick="setBatterHandFilter('ALL')" id="filter-hand-all" class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-sky-500 text-white font-bold transition shadow-sm">All</button>
+            <button onclick="setBatterHandFilter('Right')" id="filter-hand-rhh" class="flex-1 sm:flex-none px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">vs RHH</button>
+            <button onclick="setBatterHandFilter('Left')" id="filter-hand-lhh" class="flex-1 sm:flex-none px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">vs LHH</button>
           </div>
           
-          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-xs shadow-inner">
-            <button onclick="setTagSource('auto')" id="tag-source-auto" class="px-3 py-1.5 rounded-lg bg-indigo-500 text-white font-bold transition shadow-sm">Auto-Tag</button>
-            <button onclick="setTagSource('tagged')" id="tag-source-tagged" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">User-Tag</button>
+          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-[10px] md:text-xs shadow-inner justify-between sm:justify-start">
+            <button onclick="setTagSource('auto')" id="tag-source-auto" class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-indigo-500 text-white font-bold transition shadow-sm">Auto-Tag</button>
+            <button onclick="setTagSource('tagged')" id="tag-source-tagged" class="flex-1 sm:flex-none px-3 py-2 rounded-lg text-slate-400 hover:text-white transition">User-Tag</button>
           </div>
         </div>
       </div>
 
-      <!-- CORE KPIS -->
-      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+      <!-- CORE KPIS (Mobile responsive grid) -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">1-1 Win %</span>
-            <span id="kpi-oneone-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+            <span class="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">1-1 Win %</span>
+            <span id="kpi-oneone-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-slate-600 shadow-sm shrink-0"></span>
           </div>
-          <div id="kpi-oneone" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;58.0%</span></div>
+          <div id="kpi-oneone" class="text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[8px] md:text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;58.0%</span></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">FPS %</span>
-            <span id="kpi-fps-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+            <span class="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">FPS %</span>
+            <span id="kpi-fps-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-slate-600 shadow-sm shrink-0"></span>
           </div>
-          <div id="kpi-fps" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;62.0%</span></div>
+          <div id="kpi-fps" class="text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[8px] md:text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;62.0%</span></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">&le; 4 Pitches/PA</span>
-            <span id="kpi-fourless-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+            <span class="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">&le;4 P/PA</span>
+            <span id="kpi-fourless-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-slate-600 shadow-sm shrink-0"></span>
           </div>
-          <div id="kpi-fourless" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;52.0%</span></div>
+          <div id="kpi-fourless" class="text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[8px] md:text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;52.0%</span></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">GB %</span>
-            <span id="kpi-gb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+            <span class="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">GB %</span>
+            <span id="kpi-gb-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-slate-600 shadow-sm shrink-0"></span>
           </div>
-          <div id="kpi-gb" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;48.0%</span></div>
+          <div id="kpi-gb" class="text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[8px] md:text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;48.0%</span></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-3 md:p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors col-span-2 sm:col-span-1 lg:col-span-1">
           <div class="flex justify-between items-center mb-2">
-            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">K : BB</span>
-            <span id="kpi-kbb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+            <span class="text-[9px] md:text-[10px] text-slate-400 font-black uppercase tracking-widest">K : BB</span>
+            <span id="kpi-kbb-dot" class="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-slate-600 shadow-sm shrink-0"></span>
           </div>
-          <div id="kpi-kbb" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
-          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;3.00</span></div>
+          <div id="kpi-kbb" class="text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[8px] md:text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;3.00</span></div>
         </div>
       </div>
 
       <!-- ARSENAL TABLE -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 w-full max-w-[100vw] overflow-hidden">
         <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-table-list text-sky-400"></i> Arsenal Metrics</h3>
         <div class="table-container">
           <table class="w-full text-left text-xs font-mono">
             <thead class="uppercase text-slate-400 bg-black/60 border-b border-slate-700/50">
               <tr>
-                <th class="py-3 px-4 font-bold">Pitch</th>
-                <th class="py-3 px-3 font-bold">Count</th>
-                <th class="py-3 px-3 font-bold">Usage</th>
-                <th class="py-3 px-3 font-bold text-sky-400">Velo Avg</th>
-                <th class="py-3 px-3 font-bold text-sky-400">Velo Max</th>
-                <th class="py-3 px-3 font-bold">Spin</th>
-                <th class="py-3 px-3 font-bold">IVB</th>
-                <th class="py-3 px-3 font-bold">HB</th>
-                <th class="py-3 px-3 font-bold">Strike %</th>
-                <th class="py-3 px-3 font-bold text-amber-400">Whiff %</th>
-                <th class="py-3 px-3 font-bold">Zone %</th>
-                <th class="py-3 px-3 font-bold">Chase %</th>
+                <th class="py-3 px-3 md:px-4 font-bold">Pitch</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Count</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Usage</th>
+                <th class="py-3 px-2 md:px-3 font-bold text-sky-400">Velo Avg</th>
+                <th class="py-3 px-2 md:px-3 font-bold text-sky-400">Velo Max</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Spin</th>
+                <th class="py-3 px-2 md:px-3 font-bold">IVB</th>
+                <th class="py-3 px-2 md:px-3 font-bold">HB</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Strike %</th>
+                <th class="py-3 px-2 md:px-3 font-bold text-amber-400">Whiff %</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Zone %</th>
+                <th class="py-3 px-2 md:px-3 font-bold">Chase %</th>
               </tr>
             </thead>
             <tbody id="metrics-table-body" class="divide-y divide-slate-700/50 bg-[#0f172a]/40"></tbody>
@@ -207,22 +222,22 @@
       </div>
 
       <!-- ADVANCED DIAGNOSTICS ROW 1 -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw]">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-sky-400"></i> Count Leverage</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1" id="leverage-cards"></div>
+          <div class="grid grid-cols-2 gap-3 flex-1" id="leverage-cards"></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw]">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-microscope text-sky-400"></i> Arsenal Consistency</h3>
           <div class="table-container flex-1">
             <table class="w-full text-left text-xs font-mono h-full">
               <thead class="text-slate-400 bg-black/60 border-b border-slate-700/50 uppercase">
                 <tr>
-                  <th class="py-3 px-4 font-bold">Pitch</th>
-                  <th class="py-3 px-3 font-bold">Velo Spread (&Delta;)</th>
-                  <th class="py-3 px-3 font-bold">Velo StdDev (&sigma;)</th>
-                  <th class="py-3 px-3 font-bold">Spin Range</th>
-                  <th class="py-3 px-3 font-bold">Rel Ht StdDev</th>
+                  <th class="py-3 px-3 font-bold">Pitch</th>
+                  <th class="py-3 px-2 font-bold">Velo Spread (&Delta;)</th>
+                  <th class="py-3 px-2 font-bold">Velo StdDev (&sigma;)</th>
+                  <th class="py-3 px-2 font-bold">Spin Range</th>
+                  <th class="py-3 px-2 font-bold">Rel Ht StdDev</th>
                 </tr>
               </thead>
               <tbody id="consistency-tbody" class="divide-y divide-slate-700/50 bg-[#0f172a]/40"></tbody>
@@ -232,66 +247,66 @@
       </div>
 
       <!-- ADVANCED DIAGNOSTICS ROW 2 -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-center gap-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-5">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col justify-center gap-6 overflow-hidden max-w-[100vw]">
           <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-sky-400"></i> Zone Command Execution</h3>
           <div id="attack-zone-bars" class="w-full flex flex-col gap-4 text-xs font-mono"></div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
-          <div class="flex justify-between items-center mb-4">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw]">
+          <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
             <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-baseball-bat-ball text-sky-400"></i> Spray Chart</h3>
-            <div class="text-[9px] font-black tracking-wider uppercase text-slate-300 bg-black/50 px-2.5 py-1 rounded border border-slate-700/50 shadow-inner">
-              <span class="w-2.5 h-2.5 inline-block rounded-full bg-rose-500 mr-1 align-text-top shadow-[0_0_5px_rgba(244,63,94,0.8)]"></span>&ge;95 mph <span class="text-slate-600 mx-1.5">|</span>
-              <span class="w-2.5 h-2.5 inline-block rounded-full bg-sky-400 mr-1 align-text-top shadow-[0_0_5px_rgba(56,189,248,0.8)]"></span>&lt;95 mph
+            <div class="text-[8px] md:text-[9px] font-black tracking-wider uppercase text-slate-300 bg-black/50 px-2.5 py-1.5 rounded border border-slate-700/50 shadow-inner self-start sm:self-auto">
+              <span class="w-2 h-2 inline-block rounded-full bg-rose-500 mr-1 align-text-top shadow-[0_0_5px_rgba(244,63,94,0.8)]"></span>&ge;95 mph <span class="text-slate-600 mx-1.5">|</span>
+              <span class="w-2 h-2 inline-block rounded-full bg-sky-400 mr-1 align-text-top shadow-[0_0_5px_rgba(56,189,248,0.8)]"></span>&lt;95 mph
             </div>
           </div>
-          <div class="relative w-full aspect-[2/1] bg-[#14231b] rounded-xl border border-emerald-900/40 overflow-hidden flex-1 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)]">
+          <div class="relative w-full aspect-[4/3] sm:aspect-[2/1] bg-[#14231b] rounded-xl border border-emerald-900/40 overflow-hidden flex-1 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)]">
             <canvas id="sprayCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
       </div>
 
       <!-- ROW 3: VISUALIZERS -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw]">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-sky-400"></i> Strike Zone</h3>
             <div class="flex gap-1 text-[10px] font-mono bg-black/40 p-1 rounded-lg border border-slate-700/50 shadow-inner">
-              <button onclick="setZoneFilter('all')" id="zone-filter-all" class="px-2.5 py-1 rounded bg-sky-500 text-white font-bold transition shadow-sm">All</button>
-              <button onclick="setZoneFilter('whiffs')" id="zone-filter-whiffs" class="px-2.5 py-1 rounded text-amber-400 hover:text-white transition">Whiffs</button>
+              <button onclick="setZoneFilter('all')" id="zone-filter-all" class="px-2.5 py-1.5 rounded bg-sky-500 text-white font-bold transition shadow-sm">All</button>
+              <button onclick="setZoneFilter('whiffs')" id="zone-filter-whiffs" class="px-2.5 py-1.5 rounded text-amber-400 hover:text-white transition">Whiffs</button>
             </div>
           </div>
-          <div class="relative w-full aspect-[4/5] bg-gradient-to-b from-[#0f172a] to-[#020617] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)]">
+          <div class="relative w-full aspect-square md:aspect-[4/5] bg-gradient-to-b from-[#0f172a] to-[#020617] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)]">
             <canvas id="strikeZoneCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
-          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt text-sky-400"></i> Fastball-Off Speed Separation</h3>
-          <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw]">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2 whitespace-nowrap"><i class="fa-solid fa-bolt text-sky-400"></i> FB-OS Separation</h3>
+          <div class="relative w-full aspect-square md:aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
             <canvas id="pitchSepCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
-        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col overflow-hidden max-w-[100vw] md:col-span-2 lg:col-span-1">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-split-up-and-left text-sky-400"></i> Movement Plot</h3>
-          <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
+          <div class="relative w-full aspect-square md:aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
             <canvas id="movementChartCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
       </div>
       
       <!-- ROW 4: TUNNELING & ARM ANGLE (NEW) -->
-      <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col mt-5">
-        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-4 md:p-5 flex flex-col mt-5 overflow-hidden max-w-[100vw]">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-3 md:gap-4">
           <div>
             <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-person-running text-sky-400"></i> Tunneling & Arm Angle</h3>
             <p class="text-[10px] text-slate-400 font-mono mt-1">Average release points by pitch type mapped dynamically from the shoulder.</p>
           </div>
-          <div class="flex gap-1 text-[10px] font-mono bg-black/40 p-1 rounded-lg border border-slate-700/50 shadow-inner">
-            <button onclick="setBiomechView('rear')" id="biomech-btn-rear" class="px-3 py-1.5 rounded bg-sky-500 text-white font-bold transition shadow-sm">Rear View (Angle)</button>
-            <button onclick="setBiomechView('side')" id="biomech-btn-side" class="px-3 py-1.5 rounded text-slate-400 hover:text-white transition">Side View (Extension)</button>
+          <div class="flex gap-1 text-[10px] font-mono bg-black/40 p-1 rounded-lg border border-slate-700/50 shadow-inner w-full sm:w-auto overflow-x-auto scrollbar-hide">
+            <button onclick="setBiomechView('rear')" id="biomech-btn-rear" class="flex-1 sm:flex-none px-3 py-2 rounded bg-sky-500 text-white font-bold transition shadow-sm whitespace-nowrap">Rear View</button>
+            <button onclick="setBiomechView('side')" id="biomech-btn-side" class="flex-1 sm:flex-none px-3 py-2 rounded text-slate-400 hover:text-white transition whitespace-nowrap">Side View</button>
           </div>
         </div>
-        <div class="relative w-full aspect-[2/1] bg-[#070b14] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)] overflow-hidden">
+        <div class="relative w-full aspect-[4/3] sm:aspect-[2/1] bg-[#070b14] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)] overflow-hidden">
           <canvas id="biomechanicsCanvas" class="w-full h-full block"></canvas>
         </div>
       </div>
@@ -305,23 +320,23 @@
           <h1 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Staff Leaderboard</h1>
           <p class="text-sm text-slate-400 mt-1">Click any column header to sort. Colors map to D1 benchmarks.</p>
         </div>
-        <div id="sort-indicator" class="text-[11px] font-mono bg-sky-900/40 text-sky-300 border border-sky-700/50 px-4 py-2 rounded-xl font-bold shadow-inner">
+        <div id="sort-indicator" class="text-[11px] font-mono bg-sky-900/40 text-sky-300 border border-sky-700/50 px-4 py-2.5 rounded-xl font-bold shadow-inner inline-block w-fit">
           Sorted by: Strike % (Desc)
         </div>
       </div>
-      <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
-        <div class="overflow-x-auto">
+      <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl max-w-[100vw]">
+        <div class="overflow-x-auto table-container">
           <table class="w-full text-left text-sm font-mono">
             <thead class="uppercase text-slate-300 bg-black/60 border-b border-slate-700/50 select-none text-xs font-black tracking-widest">
               <tr>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('name')">Pitcher <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-name"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('hand')">Throws <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-hand"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('total')">Pitches <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-total"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-sky-400" onclick="sortLeaderboard('fbVelo')">Max Velo <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-fbVelo"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('strikePct')">Strike % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-strikePct"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-amber-400" onclick="sortLeaderboard('whiffPct')">Whiff % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-whiffPct"></i></th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('kbb')">K:BB <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-kbb"></i></th>
-                <th class="py-4 px-5 text-right">Profile</th>
+                <th class="py-4 px-4 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('name')">Pitcher <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-name"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('hand')">Throws <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-hand"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('total')">Pitches <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-total"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group text-sky-400" onclick="sortLeaderboard('fbVelo')">Max Velo <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-fbVelo"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('strikePct')">Strike % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-strikePct"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group text-amber-400" onclick="sortLeaderboard('whiffPct')">Whiff % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-whiffPct"></i></th>
+                <th class="py-4 px-3 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('kbb')">K:BB <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-kbb"></i></th>
+                <th class="py-4 px-4 text-right">Profile</th>
               </tr>
             </thead>
             <tbody id="leaderboard-tbody" class="divide-y divide-slate-700/40 bg-[#0f172a]/30"></tbody>
@@ -333,13 +348,13 @@
 
   <!-- UPLOAD MODAL -->
   <div id="uploadModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="glass-card border border-slate-600 rounded-3xl w-full max-w-md p-8 space-y-6 shadow-2xl">
+    <div class="glass-card border border-slate-600 rounded-3xl w-full max-w-md p-6 md:p-8 space-y-6 shadow-2xl">
       <div class="flex justify-between items-center">
-        <h3 class="text-2xl font-black text-white flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-up text-sky-400 drop-shadow-md"></i> Upload CSV</h3>
-        <button onclick="closeUploadModal()" class="text-slate-500 hover:text-white transition text-2xl">&times;</button>
+        <h3 class="text-xl md:text-2xl font-black text-white flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-up text-sky-400 drop-shadow-md"></i> Upload CSV</h3>
+        <button onclick="closeUploadModal()" class="text-slate-500 hover:text-white transition text-3xl pb-1">&times;</button>
       </div>
       
-      <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-600 hover:border-sky-500 bg-black/30 hover:bg-sky-900/20 rounded-2xl p-8 text-center cursor-pointer transition-all group shadow-inner">
+      <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-600 hover:border-sky-500 bg-black/30 hover:bg-sky-900/20 rounded-2xl p-6 md:p-8 text-center cursor-pointer transition-all group shadow-inner">
         <i class="fa-solid fa-file-csv text-5xl text-slate-500 group-hover:text-sky-400 mb-4 transition-colors"></i>
         <div class="text-sm font-bold text-slate-300 group-hover:text-white">Click or drag TrackMan CSV here</div>
         <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Appends to current data</div>
@@ -362,7 +377,7 @@
            <div class="text-white font-bold text-sm text-rose-400 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Clear App Data</div>
            <div class="text-[10px] text-rose-500/70 mt-1">Wipes all stored pitches.</div>
          </div>
-         <button onclick="clearAllData()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black tracking-wider rounded-lg shadow-[0_0_10px_rgba(225,29,72,0.4)] border border-rose-500 transition">RESET</button>
+         <button onclick="clearAllData()" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black tracking-wider rounded-lg shadow-[0_0_10px_rgba(225,29,72,0.4)] border border-rose-500 transition">RESET</button>
       </div>
     </div>
   </div>
@@ -375,35 +390,49 @@
       leaderboardSort: { key: 'strikePct', asc: false }
     };
     window.AppState = AppState;
-    window.biomechView = 'rear'; // New global for arm angle view
+    window.biomechView = 'rear';
     
     const PITCH_COLORS = { 'Four-Seam': '#ef4444', 'Sinker': '#f97316', 'Cutter': '#eab308', 'Slider': '#06b6d4', 'Sweeper': '#3b82f6', 'Curveball': '#8b5cf6', 'Changeup': '#10b981', 'Splitter': '#ec4899', 'Other': '#94a3b8' };
-    
-    // Pitch abbreviations for the Arm Angle Chart
     const PITCH_ABBR = { 'Four-Seam': 'FB', 'Sinker': 'SI', 'Cutter': 'CT', 'Slider': 'SL', 'Sweeper': 'ST', 'Curveball': 'CB', 'Changeup': 'CH', 'Splitter': 'SPL', 'Other': 'XX' };
 
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.font.family = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
-    window.onload = function() {
-      // FIX: Check if we are loading a shared cloud report
-      const params = new URLSearchParams(window.location.search);
-      if (params.get("report")) {
-        // If there is a report ID in the URL, do NOT load local storage or sample data.
-        // Let the Firebase DOMContentLoaded script handle injecting the real data.
-        return; 
-      }
+    // UI HELPER: Update status UI across mobile and desktop tags
+    function updateStatusUI(iconHtml, extraClasses = '') {
+      const elMobile = document.getElementById('cloud-status');
+      const elDesktop = document.getElementById('cloud-status-desktop');
+      if (elMobile) { elMobile.innerHTML = iconHtml; elMobile.className = 'px-2 py-1.5 md:hidden rounded-lg text-[9px] font-bold border flex items-center gap-1.5 shadow-inner uppercase tracking-widest shrink-0 ' + extraClasses; }
+      if (elDesktop) { elDesktop.innerHTML = iconHtml; elDesktop.className = 'px-3 py-2 rounded-lg text-[10px] font-bold border hidden md:flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 shrink-0 ' + extraClasses; }
+    }
 
-      const stored = localStorage.getItem('franilitics_pitches');
-      if (stored) { 
-        try { 
-          AppState.allPitches = JSON.parse(stored); 
-          processPitchesData(); 
-          setListView(); 
-          return; 
-        } catch (e) { console.error("Error loading stored pitches", e); } 
+    // --- REFINED INIT SEQUENCE ---
+    // Instead of relying on multiple events racing, we define ONE master flow.
+    window.initializeAppFlow = async function() {
+      const params = new URLSearchParams(window.location.search);
+      const reportId = params.get("report");
+
+      if (reportId) {
+        // Mode 1: Cloud Shared Report
+        if (window.loadFraniliticsReportFromUrl) {
+           await window.loadFraniliticsReportFromUrl(reportId);
+        } else {
+           // Fallback if script hasn't fully registered
+           setTimeout(() => { if (window.loadFraniliticsReportFromUrl) window.loadFraniliticsReportFromUrl(reportId); }, 300);
+        }
+      } else {
+        // Mode 2: Local Data or Sample Data
+        const stored = localStorage.getItem('franilitics_pitches');
+        if (stored && stored !== '[]') { 
+          try { 
+            AppState.allPitches = JSON.parse(stored); 
+            processPitchesData(); 
+            setListView(); 
+            return; 
+          } catch (e) { console.error("Error loading stored pitches", e); } 
+        }
+        loadSampleData();
       }
-      loadSampleData();
     };
 
     window.processPitchesData = function() {
@@ -522,8 +551,8 @@
 
     window.setBiomechView = function(v) {
       window.biomechView = v;
-      const s = 'px-3 py-1.5 rounded bg-sky-500 text-white font-bold transition shadow-sm';
-      const us = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition';
+      const s = 'flex-1 sm:flex-none px-3 py-2 rounded bg-sky-500 text-white font-bold transition shadow-sm whitespace-nowrap';
+      const us = 'flex-1 sm:flex-none px-3 py-2 rounded text-slate-400 hover:text-white transition whitespace-nowrap';
       document.getElementById('biomech-btn-rear').className = v==='rear' ? s : us;
       document.getElementById('biomech-btn-side').className = v==='side' ? s : us;
       renderBiomechanics();
@@ -545,20 +574,20 @@
         const m = computeMetrics(po.outings[latest] || po.allPitches);
         const inits = n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
         return `
-          <div onclick="setPitcherView('${n}')" class="glass-card border border-slate-700/50 hover:border-sky-500/80 rounded-2xl p-6 cursor-pointer group transition-all relative overflow-hidden">
+          <div onclick="setPitcherView('${n}')" class="glass-card border border-slate-700/50 hover:border-sky-500/80 rounded-2xl p-5 md:p-6 cursor-pointer group transition-all relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl -mr-6 -mt-6 pointer-events-none group-hover:bg-sky-500/20 transition"></div>
-            <div class="flex items-center gap-4 mb-5 relative z-10">
-              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white text-xl font-black flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)]">${inits}</div>
-              <div>
-                <h3 class="font-black text-white text-xl group-hover:text-sky-400 transition tracking-tight">${n}</h3>
-                <div class="text-[11px] text-slate-400 font-mono tracking-widest uppercase mt-0.5">${po.hand} • ${latest}</div>
+            <div class="flex items-center gap-4 mb-4 relative z-10">
+              <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white text-lg md:text-xl font-black flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)] shrink-0">${inits}</div>
+              <div class="min-w-0">
+                <h3 class="font-black text-white text-lg md:text-xl group-hover:text-sky-400 transition tracking-tight truncate">${n}</h3>
+                <div class="text-[10px] md:text-[11px] text-slate-400 font-mono tracking-widest uppercase mt-0.5 truncate">${po.hand} • ${latest}</div>
               </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center font-mono text-[10px] relative z-10 uppercase tracking-wider font-semibold">
-              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">1-1 WIN</span><span class="${getKpiTier('oneone',m.oneOneWinPct).text} font-black text-xs drop-shadow-sm">${m.oneOneWinPct}%</span></div>
-              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">FPS %</span><span class="${getKpiTier('fps',m.fpsPct).text} font-black text-xs drop-shadow-sm">${m.fpsPct}%</span></div>
-              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">&le;4 P/PA</span><span class="${getKpiTier('fourless',m.fourLessPct).text} font-black text-xs drop-shadow-sm">${m.fourLessPct}%</span></div>
-              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">K:BB</span><span class="${getKpiTier('kbb',m.kbb).text} font-black text-xs drop-shadow-sm">${m.kbb}</span></div>
+            <div class="grid grid-cols-4 gap-2 text-center font-mono text-[9px] md:text-[10px] relative z-10 uppercase tracking-wider font-semibold">
+              <div class="bg-black/40 p-2 md:p-2.5 rounded-xl border border-slate-700/50 shadow-inner flex flex-col justify-center"><span class="text-slate-500 block mb-1">1-1</span><span class="${getKpiTier('oneone',m.oneOneWinPct).text} font-black text-[10px] md:text-xs drop-shadow-sm">${m.oneOneWinPct}%</span></div>
+              <div class="bg-black/40 p-2 md:p-2.5 rounded-xl border border-slate-700/50 shadow-inner flex flex-col justify-center"><span class="text-slate-500 block mb-1">FPS</span><span class="${getKpiTier('fps',m.fpsPct).text} font-black text-[10px] md:text-xs drop-shadow-sm">${m.fpsPct}%</span></div>
+              <div class="bg-black/40 p-2 md:p-2.5 rounded-xl border border-slate-700/50 shadow-inner flex flex-col justify-center"><span class="text-slate-500 block mb-1">&le;4 P</span><span class="${getKpiTier('fourless',m.fourLessPct).text} font-black text-[10px] md:text-xs drop-shadow-sm">${m.fourLessPct}%</span></div>
+              <div class="bg-black/40 p-2 md:p-2.5 rounded-xl border border-slate-700/50 shadow-inner flex flex-col justify-center"><span class="text-slate-500 block mb-1">K:BB</span><span class="${getKpiTier('kbb',m.kbb).text} font-black text-[10px] md:text-xs drop-shadow-sm">${m.kbb}</span></div>
             </div>
           </div>
         `;
@@ -578,18 +607,18 @@
     }
 
     function updateFilterButtons() {
-      const s='bg-sky-500 text-white font-bold shadow-[0_0_10px_rgba(14,165,233,0.4)]', us='text-slate-400 hover:text-white';
-      const is='bg-indigo-500 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.4)]';
-      document.getElementById('filter-hand-all').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='ALL'?s:us}`;
-      document.getElementById('filter-hand-rhh').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='Right'?s:us}`;
-      document.getElementById('filter-hand-lhh').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='Left'?s:us}`;
+      const s='flex-1 sm:flex-none px-3 py-2 rounded-lg bg-sky-500 text-white font-bold transition shadow-sm', us='flex-1 sm:flex-none px-3 py-2 rounded-lg text-slate-400 hover:text-white transition';
+      const is='flex-1 sm:flex-none px-3 py-2 rounded-lg bg-indigo-500 text-white font-bold transition shadow-sm';
+      document.getElementById('filter-hand-all').className = `${AppState.batterHandFilter==='ALL'?s:us}`;
+      document.getElementById('filter-hand-rhh').className = `${AppState.batterHandFilter==='Right'?s:us}`;
+      document.getElementById('filter-hand-lhh').className = `${AppState.batterHandFilter==='Left'?s:us}`;
       
-      document.getElementById('tag-source-auto').className = `px-3 py-1.5 rounded-lg transition ${AppState.tagSource==='auto'?is:us}`;
-      document.getElementById('tag-source-tagged').className = `px-3 py-1.5 rounded-lg transition ${AppState.tagSource==='tagged'?is:us}`;
+      document.getElementById('tag-source-auto').className = `${AppState.tagSource==='auto'?is:us}`;
+      document.getElementById('tag-source-tagged').className = `${AppState.tagSource==='tagged'?is:us}`;
 
-      const zs='bg-sky-500 text-white font-bold shadow-[0_0_10px_rgba(14,165,233,0.4)]', zus='text-slate-400 hover:text-white', zw='bg-amber-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(245,158,11,0.4)]';
-      document.getElementById('zone-filter-all').className = `px-2.5 py-1 rounded-lg transition ${AppState.zoneFilter==='all'?zs:zus}`;
-      document.getElementById('zone-filter-whiffs').className = `px-2.5 py-1 rounded-lg transition ${AppState.zoneFilter==='whiffs'?zw:zus}`;
+      const zs='px-2.5 py-1.5 rounded-lg transition bg-sky-500 text-white font-bold shadow-[0_0_10px_rgba(14,165,233,0.4)]', zus='px-2.5 py-1.5 rounded-lg transition text-slate-400 hover:text-white', zw='px-2.5 py-1.5 rounded-lg transition bg-amber-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(245,158,11,0.4)]';
+      document.getElementById('zone-filter-all').className = `${AppState.zoneFilter==='all'?zs:zus}`;
+      document.getElementById('zone-filter-whiffs').className = `${AppState.zoneFilter==='whiffs'?zw:zus}`;
     }
 
     function onOutingChange() { AppState.currentOuting = document.getElementById('outingSelect').value; renderProfile(); }
@@ -610,8 +639,8 @@
         const val = m[k==='fourless'?'fourLessPct':k==='oneone'?'oneOneWinPct':k+'Pct'] || m.kbb;
         document.getElementById(`kpi-${k}`).textContent = val + (k==='kbb'?'':'%');
         const tier = getKpiTier(k, val);
-        document.getElementById(`kpi-${k}`).className = `text-3xl font-black font-mono tracking-tighter drop-shadow-md ${tier.text} ${tier.glow}`;
-        document.getElementById(`kpi-${k}-dot`).className = `w-2.5 h-2.5 rounded-full shadow-sm ${tier.bg}`;
+        document.getElementById(`kpi-${k}`).className = `text-2xl md:text-3xl font-black font-mono tracking-tighter drop-shadow-md ${tier.text} ${tier.glow}`;
+        document.getElementById(`kpi-${k}-dot`).className = `w-2 h-2 md:w-2.5 md:h-2.5 rounded-full shadow-sm shrink-0 ${tier.bg}`;
       });
 
       // Arsenal & Consistency
@@ -635,18 +664,18 @@
         const vAvg = d.v.length ? (d.v.reduce((a,b)=>a+b)/d.v.length).toFixed(1) : '--';
         return `
           <tr class="hover:bg-slate-800/80 transition-colors">
-            <td class="py-3 px-4 text-white font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span>${t}</td>
-            <td class="py-3 px-3">${d.c}</td>
-            <td class="py-3 px-3">${((d.c/pitches.length)*100).toFixed(1)}%</td>
-            <td class="py-3 px-3 text-sky-400 font-bold">${vAvg}</td>
-            <td class="py-3 px-3 text-white font-semibold">${d.v.length?Math.max(...d.v).toFixed(1):'--'}</td>
-            <td class="py-3 px-3">${d.s.length?(d.s.reduce((a,b)=>a+b)/d.s.length).toFixed(0):'--'}</td>
-            <td class="py-3 px-3">${d.i.length?(d.i.reduce((a,b)=>a+b)/d.i.length).toFixed(1):'--'}</td>
-            <td class="py-3 px-3">${d.h.length?(d.h.reduce((a,b)=>a+b)/d.h.length).toFixed(1):'--'}</td>
-            <td class="py-3 px-3 font-black ${getKpiTier('strikePct', ((d.str/d.c)*100)).text}">${((d.str/d.c)*100||0).toFixed(1)}%</td>
-            <td class="py-3 px-3 font-black ${getKpiTier('whiffPct', ((d.wh/d.sw)*100)).text}">${((d.wh/d.sw)*100||0).toFixed(1)}%</td>
-            <td class="py-3 px-3">${((d.iz/d.c)*100||0).toFixed(1)}%</td>
-            <td class="py-3 px-3">${((d.ch/d.oz)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-3 md:px-4 text-white font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)] shrink-0" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span>${t}</td>
+            <td class="py-3 px-2 md:px-3">${d.c}</td>
+            <td class="py-3 px-2 md:px-3">${((d.c/pitches.length)*100).toFixed(1)}%</td>
+            <td class="py-3 px-2 md:px-3 text-sky-400 font-bold">${vAvg}</td>
+            <td class="py-3 px-2 md:px-3 text-white font-semibold">${d.v.length?Math.max(...d.v).toFixed(1):'--'}</td>
+            <td class="py-3 px-2 md:px-3">${d.s.length?(d.s.reduce((a,b)=>a+b)/d.s.length).toFixed(0):'--'}</td>
+            <td class="py-3 px-2 md:px-3">${d.i.length?(d.i.reduce((a,b)=>a+b)/d.i.length).toFixed(1):'--'}</td>
+            <td class="py-3 px-2 md:px-3">${d.h.length?(d.h.reduce((a,b)=>a+b)/d.h.length).toFixed(1):'--'}</td>
+            <td class="py-3 px-2 md:px-3 font-black ${getKpiTier('strikePct', ((d.str/d.c)*100)).text}">${((d.str/d.c)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-2 md:px-3 font-black ${getKpiTier('whiffPct', ((d.wh/d.sw)*100)).text}">${((d.wh/d.sw)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-2 md:px-3">${((d.iz/d.c)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-2 md:px-3">${((d.ch/d.oz)*100||0).toFixed(1)}%</td>
           </tr>
         `;
       }).join('');
@@ -658,11 +687,11 @@
         const spread = (vMax - vMin).toFixed(1);
         return `
           <tr class="hover:bg-slate-800/80 transition-colors">
-            <td class="py-3 px-4 text-white font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span>${t}</td>
-            <td class="py-3 px-3">${spread} mph <span class="text-[9px] text-slate-500 font-semibold tracking-wider ml-1">(${vMin}-${vMax})</span></td>
-            <td class="py-3 px-3 font-black tracking-wider ${vSd<1.5?'text-emerald-400':vSd>2.5?'text-rose-500':'text-amber-400'}">${vSd}</td>
-            <td class="py-3 px-3">${sMin} - ${sMax}</td>
-            <td class="py-3 px-3">${stdDev(d.rh).toFixed(2)} ft</td>
+            <td class="py-3 px-3 font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span><span class="text-white truncate">${t}</span></td>
+            <td class="py-3 px-2">${spread} mph <span class="text-[9px] text-slate-500 font-semibold tracking-wider ml-1">(${vMin}-${vMax})</span></td>
+            <td class="py-3 px-2 font-black tracking-wider ${vSd<1.5?'text-emerald-400':vSd>2.5?'text-rose-500':'text-amber-400'}">${vSd}</td>
+            <td class="py-3 px-2">${sMin} - ${sMax}</td>
+            <td class="py-3 px-2">${stdDev(d.rh).toFixed(2)} ft</td>
           </tr>`;
       }).join('');
 
@@ -681,10 +710,10 @@
       ].map(x => {
         const d = lev[x.k];
         return `
-        <div class="${d.bg} p-4 rounded-xl border flex flex-col justify-center shadow-inner">
-          <div class="text-[10px] text-slate-400 font-black mb-3 uppercase tracking-widest">${x.n}</div>
-          <div class="text-2xl font-black text-white leading-tight font-mono">${d.c?((d.str/d.c)*100).toFixed(0):0}% <span class="text-[9px] font-semibold uppercase tracking-widest text-slate-500">Strike</span></div>
-          <div class="text-sm text-amber-400 font-black mt-2 font-mono drop-shadow-sm">${d.sw?((d.wh/d.sw)*100).toFixed(0):0}% <span class="text-[9px] font-semibold uppercase tracking-widest text-slate-500">Whiff</span></div>
+        <div class="${d.bg} p-3 md:p-4 rounded-xl border flex flex-col justify-center shadow-inner">
+          <div class="text-[9px] md:text-[10px] text-slate-400 font-black mb-3 uppercase tracking-widest">${x.n}</div>
+          <div class="text-xl md:text-2xl font-black text-white leading-tight font-mono">${d.c?((d.str/d.c)*100).toFixed(0):0}% <span class="text-[8px] md:text-[9px] font-semibold uppercase tracking-widest text-slate-500">Strike</span></div>
+          <div class="text-xs md:text-sm text-amber-400 font-black mt-2 font-mono drop-shadow-sm">${d.sw?((d.wh/d.sw)*100).toFixed(0):0}% <span class="text-[8px] md:text-[9px] font-semibold uppercase tracking-widest text-slate-500">Whiff</span></div>
         </div>`;
       }).join('');
 
@@ -704,28 +733,28 @@
       const waP = ((wa/tot)*100).toFixed(1);
 
       document.getElementById('attack-zone-bars').innerHTML = `
-        <div class="h-8 w-full flex rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] border border-slate-700/80">
+        <div class="h-6 md:h-8 w-full flex rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] border border-slate-700/80">
           <div class="bg-rose-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(244,63,94,0.5)] transition-all" style="width: ${htP}%"></div>
           <div class="bg-emerald-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all" style="width: ${shP}%"></div>
           <div class="bg-amber-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all" style="width: ${chP}%"></div>
           <div class="bg-slate-500 flex items-center justify-center text-[10px] font-black text-black transition-all" style="width: ${waP}%"></div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
-          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
-            <span class="text-rose-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Heart</span>
-            <span class="font-black text-white text-lg drop-shadow-md">${htP}%</span>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3 mt-2">
+          <div class="flex flex-col bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-rose-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[8px] md:text-[9px] mb-1"><span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-rose-500"></span> Heart</span>
+            <span class="font-black text-white text-base md:text-lg drop-shadow-md">${htP}%</span>
           </div>
-          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
-            <span class="text-emerald-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Shadow</span>
-            <span class="font-black text-white text-lg drop-shadow-md">${shP}%</span>
+          <div class="flex flex-col bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-emerald-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[8px] md:text-[9px] mb-1"><span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-emerald-500"></span> Shadow</span>
+            <span class="font-black text-white text-base md:text-lg drop-shadow-md">${shP}%</span>
           </div>
-          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
-            <span class="text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Chase</span>
-            <span class="font-black text-white text-lg drop-shadow-md">${chP}%</span>
+          <div class="flex flex-col bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[8px] md:text-[9px] mb-1"><span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-amber-500"></span> Chase</span>
+            <span class="font-black text-white text-base md:text-lg drop-shadow-md">${chP}%</span>
           </div>
-          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
-            <span class="text-slate-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Waste</span>
-            <span class="font-black text-white text-lg drop-shadow-md">${waP}%</span>
+          <div class="flex flex-col bg-black/40 p-2 md:p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-slate-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[8px] md:text-[9px] mb-1"><span class="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-slate-500"></span> Waste</span>
+            <span class="font-black text-white text-base md:text-lg drop-shadow-md">${waP}%</span>
           </div>
         </div>
       `;
@@ -737,12 +766,10 @@
       renderBiomechanics();
     }
 
-    // --- REFINED: TUNNELING & ARM ANGLE VISUALIZER ---
     function renderBiomechanics() {
       const c = document.getElementById('biomechanicsCanvas');
       if(!c) return;
       const ctx = c.getContext('2d');
-      // Set resolution higher for crisp lines on retina screens
       const w = c.clientWidth, h = c.clientHeight;
       c.width = w * 2; c.height = h * 2; ctx.scale(2, 2);
       ctx.clearRect(0, 0, w, h);
@@ -751,16 +778,11 @@
       const po = AppState.pitchers[AppState.currentPitcher];
       const isLHP = po.hand === 'LHP';
       const pitches = getActivePitches();
-
-      const ars = {};
-      let validPitches = 0;
+      const ars = {}; let validPitches = 0;
 
       pitches.forEach(p => {
         const t = getPitchType(p);
-        const x = parseFloat(p.RelSide || p.ReleaseSide || 0); 
-        const z = parseFloat(p.RelHeight || p.ReleaseHeight || 0);
-        const ext = parseFloat(p.Extension || p.RelExtension || 0);
-        
+        const x = parseFloat(p.RelSide || p.ReleaseSide || 0), z = parseFloat(p.RelHeight || p.ReleaseHeight || 0), ext = parseFloat(p.Extension || p.RelExtension || 0);
         if(!isNaN(x) && !isNaN(z) && !isNaN(ext) && z > 0) {
           if(!ars[t]) ars[t] = { x:0, z:0, ext:0, c:0 };
           ars[t].x += x; ars[t].z += z; ars[t].ext += ext; ars[t].c++;
@@ -774,17 +796,11 @@
         return;
       }
 
-      Object.keys(ars).forEach(t => {
-        ars[t].x /= ars[t].c; ars[t].z /= ars[t].c; ars[t].ext /= ars[t].c;
-      });
+      Object.keys(ars).forEach(t => { ars[t].x /= ars[t].c; ars[t].z /= ars[t].c; ars[t].ext /= ars[t].c; });
 
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
-      ctx.font = 'bold 10px monospace';
+      ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.fillStyle = 'rgba(148, 163, 184, 0.7)'; ctx.font = 'bold 10px monospace';
 
       if(view === 'rear') {
-        // MAP X: -3 to +3 ft | MAP Z: 1 to 7 ft
         const cx = x => ((x + 3.0) / 6.0) * w;
         const cy = z => h - ((z - 1.0) / 6.0 * h);
 
@@ -800,40 +816,25 @@
           ctx.fillText(`${i}ft`, 8, cy(i)-5);
         }
 
-        // Draw Minimalist Wireframe (Back View)
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-        ctx.lineWidth = 3;
-        
-        // Spine
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(cx(0), cy(2.5)); ctx.lineTo(cx(0), cy(4.8)); ctx.stroke();
-        // Shoulders
         ctx.beginPath(); ctx.moveTo(cx(-0.8), cy(4.8)); ctx.lineTo(cx(0.8), cy(4.8)); ctx.stroke();
-        // Head
         ctx.beginPath(); ctx.arc(cx(0), cy(5.4), 14, 0, Math.PI*2); ctx.stroke();
 
-        const pxS = isLHP ? cx(-0.8) : cx(0.8);
-        const pyS = cy(4.8);
+        const pxS = isLHP ? cx(-0.8) : cx(0.8), pyS = cy(4.8);
 
         Object.keys(ars).forEach(t => {
-          const pt = ars[t];
-          const pxE = cx(pt.x), pyE = cy(pt.z);
-          const color = PITCH_COLORS[t] || '#fff';
-
+          const pt = ars[t], pxE = cx(pt.x), pyE = cy(pt.z), color = PITCH_COLORS[t] || '#fff';
           ctx.beginPath(); ctx.moveTo(pxS, pyS); ctx.lineTo(pxE, pyE);
-          ctx.strokeStyle = color; ctx.lineWidth = 2.5; 
-          ctx.shadowColor = color; ctx.shadowBlur = 8;
+          ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.shadowColor = color; ctx.shadowBlur = 8;
           ctx.stroke(); ctx.shadowBlur = 0;
-
           ctx.beginPath(); ctx.arc(pxE, pyE, 5, 0, Math.PI*2);
           ctx.fillStyle = color; ctx.fill();
           ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-
           ctx.fillStyle = '#fff'; ctx.textAlign = isLHP ? 'left' : 'right';
           ctx.fillText(PITCH_ABBR[t] || t, isLHP ? pxE + 10 : pxE - 10, pyE + 4);
         });
-
       } else {
-        // SIDE VIEW MAP: Ext: -1 to 7 ft | Z: 1 to 7 ft
         const cx = ext => ((ext + 1.0) / 8.0) * w;
         const cy = z => h - ((z - 1.0) / 6.0 * h);
 
@@ -849,34 +850,21 @@
           ctx.fillText(`${i}ft`, 8, cy(i)-5);
         }
 
-        // Draw Minimalist Wireframe (Side View, Pitcher facing Right)
-        ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-        ctx.lineWidth = 3;
-        
-        // Spine (leaning forward)
+        ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(cx(0.5), cy(2.5)); ctx.lineTo(cx(1.5), cy(4.8)); ctx.stroke();
-        // Head
         ctx.beginPath(); ctx.arc(cx(1.8), cy(5.4), 14, 0, Math.PI*2); ctx.stroke();
-        // Cap Bill pointing forward
         ctx.beginPath(); ctx.moveTo(cx(1.8), cy(5.4)); ctx.lineTo(cx(2.4), cy(5.4)); ctx.stroke();
 
-        const pxS = cx(1.5);
-        const pyS = cy(4.8);
+        const pxS = cx(1.5), pyS = cy(4.8);
 
         Object.keys(ars).forEach(t => {
-          const pt = ars[t];
-          const pxE = cx(pt.ext), pyE = cy(pt.z);
-          const color = PITCH_COLORS[t] || '#fff';
-
+          const pt = ars[t], pxE = cx(pt.ext), pyE = cy(pt.z), color = PITCH_COLORS[t] || '#fff';
           ctx.beginPath(); ctx.moveTo(pxS, pyS); ctx.lineTo(pxE, pyE);
-          ctx.strokeStyle = color; ctx.lineWidth = 2.5; 
-          ctx.shadowColor = color; ctx.shadowBlur = 8;
+          ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.shadowColor = color; ctx.shadowBlur = 8;
           ctx.stroke(); ctx.shadowBlur = 0;
-
           ctx.beginPath(); ctx.arc(pxE, pyE, 5, 0, Math.PI*2);
           ctx.fillStyle = color; ctx.fill();
           ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
-
           ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
           ctx.fillText(PITCH_ABBR[t] || t, pxE + 10, pyE + 4);
         });
@@ -894,38 +882,26 @@
 
       const cx=x=>((x+2.5)/5.0)*w, cy=y=>h-((y/5.0)*h);
       
-      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-      ctx.lineWidth = 1;
-      ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth = 1;
+      ctx.font = '10px ui-monospace, SFMono-Regular, monospace'; ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
       
       ctx.textAlign = 'center';
       for(let x = -2; x <= 2; x+=1) {
-        const px = cx(x);
-        ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
-        if(x !== 0) ctx.fillText(x > 0 ? `+${x}` : x, px, h - 8);
-        else ctx.fillText('0', px, h - 8);
+        const px = cx(x); ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+        if(x !== 0) ctx.fillText(x > 0 ? `+${x}` : x, px, h - 8); else ctx.fillText('0', px, h - 8);
       }
-      
       ctx.textAlign = 'left';
       for(let y = 1; y <= 5; y+=1) {
-        const py = cy(y);
-        ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
+        const py = cy(y); ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
         ctx.fillText(y, 8, py - 5);
       }
 
       const gradG = ctx.createLinearGradient(0, cy(0), 0, h);
-      gradG.addColorStop(0, 'rgba(255,255,255,0.05)');
-      gradG.addColorStop(1, 'transparent');
+      gradG.addColorStop(0, 'rgba(255,255,255,0.05)'); gradG.addColorStop(1, 'transparent');
       ctx.fillStyle = gradG; ctx.fillRect(0, cy(0.1), w, h);
 
-      ctx.beginPath();
-      ctx.moveTo(cx(-0.71), cy(0.1)); 
-      ctx.lineTo(cx(0.71), cy(0.1));
-      ctx.lineTo(cx(0.71), cy(0.3));
-      ctx.lineTo(cx(0), cy(0.5));
-      ctx.lineTo(cx(-0.71), cy(0.3));
-      ctx.closePath();
+      ctx.beginPath(); ctx.moveTo(cx(-0.71), cy(0.1)); ctx.lineTo(cx(0.71), cy(0.1));
+      ctx.lineTo(cx(0.71), cy(0.3)); ctx.lineTo(cx(0), cy(0.5)); ctx.lineTo(cx(-0.71), cy(0.3)); ctx.closePath();
       ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
 
@@ -942,9 +918,7 @@
       if(AppState.zoneFilter==='whiffs') pList=pList.filter(p=>isWhiffEvent(p));
       
       pList.forEach(p=>{
-        const px = cx(parseFloat(p.PlateLocSide||0)), py = cy(parseFloat(p.PlateLocHeight||2.5));
-        const color = PITCH_COLORS[getPitchType(p)]||'#fff';
-        
+        const px = cx(parseFloat(p.PlateLocSide||0)), py = cy(parseFloat(p.PlateLocHeight||2.5)), color = PITCH_COLORS[getPitchType(p)]||'#fff';
         if(isWhiffEvent(p)) { 
           ctx.beginPath(); ctx.arc(px,py,12,0,Math.PI*2); 
           const wg = ctx.createRadialGradient(px,py,0,px,py,12);
@@ -952,7 +926,6 @@
           ctx.fillStyle = wg; ctx.fill();
           ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.strokeStyle='#fcd34d'; ctx.lineWidth=1.5; ctx.stroke(); 
         }
-        
         ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); 
         const pg = ctx.createRadialGradient(px-1,py-1,0,px,py,4.5);
         pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.3, color); pg.addColorStop(1, '#000000');
@@ -972,30 +945,22 @@
       ctx.clearRect(0,0,w,h);
       
       const homeX = w/2, homeY = h-15;
-      
       ctx.fillStyle = '#14231b'; ctx.fillRect(0,0,w,h);
       ctx.beginPath(); ctx.arc(homeX, homeY, h-20, Math.PI, 0); ctx.fillStyle='#182d22'; ctx.fill();
-      
       ctx.beginPath(); ctx.arc(homeX, homeY-65, 55, 0, Math.PI*2); ctx.fillStyle='rgba(163, 110, 68, 0.2)'; ctx.fill();
-      
       ctx.beginPath(); ctx.moveTo(homeX, homeY); ctx.lineTo(homeX - (h-20), homeY - (h-20));
       ctx.moveTo(homeX, homeY); ctx.lineTo(homeX + (h-20), homeY - (h-20));
       ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
       
       ctx.fillStyle='rgba(255,255,255,0.8)';
       const drawBase = (x,y) => { ctx.beginPath(); ctx.moveTo(x,y+3); ctx.lineTo(x-3,y); ctx.lineTo(x,y-3); ctx.lineTo(x+3,y); ctx.closePath(); ctx.fill(); }
-      drawBase(homeX, homeY); 
-      drawBase(homeX, homeY-130); 
-      drawBase(homeX-65, homeY-65); 
-      drawBase(homeX+65, homeY-65); 
+      drawBase(homeX, homeY); drawBase(homeX, homeY-130); drawBase(homeX-65, homeY-65); drawBase(homeX+65, homeY-65); 
       
       getActivePitches().forEach(p => {
         const ev = parseFloat(p.ExitSpeed||0), ang = parseFloat(p.Angle||0);
         if(ev > 0) {
-          const dist = (ev/110) * (h-35); 
-          const rad = (ang - 90) * (Math.PI/180);
+          const dist = (ev/110) * (h-35), rad = (ang - 90) * (Math.PI/180);
           const px = homeX + Math.cos(rad)*dist, py = homeY + Math.sin(rad)*dist;
-          
           ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2);
           const color = ev >= 95 ? '#f43f5e' : '#38bdf8';
           ctx.fillStyle = color; ctx.fill();
@@ -1013,9 +978,7 @@
         const t=getPitchType(p), hb=parseFloat(p.HorzBreak), ivb=parseFloat(p.InducedVertBreak);
         if(!isNaN(hb)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:hb,y:ivb}); }
       });
-      
       const zeroGrid = { color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)', lineWidth: c => c.tick.value === 0 ? 2.5 : 1, drawBorder: false };
-      
       AppState.charts.movement = new Chart(document.getElementById('movementChartCanvas'), {
         type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
         options: { 
@@ -1029,19 +992,13 @@
 
     function renderSeparationChart() {
       if(AppState.charts.separation) AppState.charts.separation.destroy();
-      const ds = {};
-      const allowed = ['Four-Seam', 'Sinker', 'Changeup', 'Splitter'];
-      
+      const ds = {}; const allowed = ['Four-Seam', 'Sinker', 'Changeup', 'Splitter'];
       getActivePitches().forEach(p=>{
-        const t = getPitchType(p);
-        if (!allowed.includes(t)) return;
-        
+        const t = getPitchType(p); if (!allowed.includes(t)) return;
         const v = parseFloat(p.RelSpeed), ivb = parseFloat(p.InducedVertBreak);
         if(!isNaN(v)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:v,y:ivb}); }
       });
-      
       const zeroGrid = { color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)', lineWidth: c => c.tick.value === 0 ? 2.5 : 1, drawBorder: false };
-      
       AppState.charts.separation = new Chart(document.getElementById('pitchSepCanvas'), {
         type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
         options: { 
@@ -1056,43 +1013,36 @@
     function sortLeaderboard(key) {
       if(AppState.leaderboardSort.key === key) AppState.leaderboardSort.asc = !AppState.leaderboardSort.asc;
       else { AppState.leaderboardSort.key = key; AppState.leaderboardSort.asc = (key==='name'||key==='hand'); }
-      
       const labels = { name:'Pitcher', hand:'Throws', total:'Pitches', fbVelo:'Max Velo', strikePct:'Strike %', whiffPct:'Whiff %', kbb:'K:BB' };
       document.getElementById('sort-indicator').innerHTML = `Sorted by: ${labels[key]} (${AppState.leaderboardSort.asc ? 'Asc' : 'Desc'})`;
-      
       document.querySelectorAll('.sort-icon').forEach(el => { el.classList.remove('fa-sort-up','fa-sort-down','active'); el.classList.add('fa-sort'); });
       const activeIcon = document.getElementById(`sort-icon-${key}`);
-      activeIcon.classList.remove('fa-sort');
-      activeIcon.classList.add(AppState.leaderboardSort.asc ? 'fa-sort-up' : 'fa-sort-down', 'active');
-      
+      activeIcon.classList.remove('fa-sort'); activeIcon.classList.add(AppState.leaderboardSort.asc ? 'fa-sort-up' : 'fa-sort-down', 'active');
       renderLeaderboard();
     }
 
     function renderLeaderboard() {
       let rows = Object.keys(AppState.pitchers).map(n => {
-        const po = AppState.pitchers[n];
-        const m = computeMetrics(po.allPitches);
+        const po = AppState.pitchers[n], m = computeMetrics(po.allPitches);
         return { name: n, hand: po.hand, total: m.total, fbVelo: parseFloat(m.fbVelo), strikePct: parseFloat(m.strikePct), whiffPct: parseFloat(m.whiffPct), kbb: parseFloat(m.kbb), rawM: m };
       });
-
       const { key, asc } = AppState.leaderboardSort;
       rows.sort((a,b) => {
         let va = a[key], vb = b[key];
         if(typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
         return asc ? (va - vb) : (vb - va);
       });
-
       document.getElementById('leaderboard-tbody').innerHTML = rows.map(r => `
         <tr class="hover:bg-slate-800/80 transition-colors">
-          <td class="py-4 px-5 text-white font-bold tracking-wide">${r.name}</td>
-          <td class="py-4 px-5 text-slate-400 font-semibold">${r.hand}</td>
-          <td class="py-4 px-5">${r.total}</td>
-          <td class="py-4 px-5 text-sky-400 font-black">${r.rawM.fbVelo}</td>
-          <td class="py-4 px-5 font-black ${getKpiTier('strikePct',r.rawM.strikePct).text}">${r.rawM.strikePct}%</td>
-          <td class="py-4 px-5 font-black ${getKpiTier('whiffPct',r.rawM.whiffPct).text}">${r.rawM.whiffPct}%</td>
-          <td class="py-4 px-5 font-black ${getKpiTier('kbb',r.rawM.kbb).text}">${r.rawM.kbb}</td>
-          <td class="py-4 px-5 text-right">
-            <button onclick="setPitcherView('${r.name}')" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-xs font-black tracking-widest text-white transition shadow-[0_0_10px_rgba(2,132,199,0.5)] border border-sky-500">VIEW</button>
+          <td class="py-4 px-4 text-white font-bold tracking-wide truncate max-w-[120px] md:max-w-none">${r.name}</td>
+          <td class="py-4 px-3 text-slate-400 font-semibold">${r.hand}</td>
+          <td class="py-4 px-3">${r.total}</td>
+          <td class="py-4 px-3 text-sky-400 font-black">${r.rawM.fbVelo}</td>
+          <td class="py-4 px-3 font-black ${getKpiTier('strikePct',r.rawM.strikePct).text}">${r.rawM.strikePct}%</td>
+          <td class="py-4 px-3 font-black ${getKpiTier('whiffPct',r.rawM.whiffPct).text}">${r.rawM.whiffPct}%</td>
+          <td class="py-4 px-3 font-black ${getKpiTier('kbb',r.rawM.kbb).text}">${r.rawM.kbb}</td>
+          <td class="py-4 px-4 text-right">
+            <button onclick="setPitcherView('${r.name}')" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 rounded-lg text-xs font-black tracking-widest text-white transition shadow-[0_0_10px_rgba(2,132,199,0.5)] border border-sky-500">VIEW</button>
           </td>
         </tr>
       `).join('');
@@ -1107,7 +1057,6 @@
           header:true, skipEmptyLines: true,
           complete: r => { 
             let newPitches = r.data.filter(p => p.Pitcher && p.Pitcher.trim() !== '');
-            
             const selMode = document.getElementById('selModeToggle') && document.getElementById('selModeToggle').checked;
             if (selMode) {
               newPitches = newPitches.filter(p => {
@@ -1115,12 +1064,9 @@
                 return team.includes('sou_lio') || team.includes('southeastern') || team.includes('slu');
               });
             }
-            
             AppState.allPitches = [...AppState.allPitches, ...newPitches]; 
             localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches)); 
-            window.processPitchesData(); 
-            closeUploadModal(); 
-            window.setListView(); 
+            window.processPitchesData(); closeUploadModal(); window.setListView(); 
           }
         }); 
         e.target.value = '';
@@ -1133,18 +1079,14 @@
       if(confirm(`Are you sure you want to delete all data for ${name}? This cannot be undone.`)) {
         AppState.allPitches = AppState.allPitches.filter(p => p.Pitcher !== name);
         localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches));
-        window.processPitchesData();
-        window.setListView();
+        window.processPitchesData(); window.setListView();
       }
     };
 
     window.clearAllData = function() {
       if(confirm("Are you sure you want to wipe ALL pitches from the app? This cannot be undone.")) {
-        AppState.allPitches = [];
-        localStorage.setItem('franilitics_pitches', '[]'); 
-        window.processPitchesData();
-        window.closeUploadModal();
-        window.setListView();
+        AppState.allPitches = []; localStorage.setItem('franilitics_pitches', '[]'); 
+        window.processPitchesData(); window.closeUploadModal(); window.setListView();
       }
     };
     
@@ -1162,8 +1104,7 @@
           const rand = Math.random();
           let type = 'Four-Seam', velo = pt.fbV, ivb = 16, hb = pt.h==='RHP'? 8 : -8, spin = 2350, side = (Math.random()-0.5)*2.5, ht = 1.5+Math.random()*2.5;
           let relSide = pt.h==='RHP' ? -1.8 + (Math.random()-0.5)*0.3 : 1.8 + (Math.random()-0.5)*0.3;
-          let ext = 6.2 + (Math.random()-0.5)*0.4;
-          let relHt = 5.8 + (Math.random()-0.5)*0.2;
+          let ext = 6.2 + (Math.random()-0.5)*0.4, relHt = 5.8 + (Math.random()-0.5)*0.2;
 
           if(rand > 0.5 && rand <= 0.8) { 
             type = 'Slider'; velo = pt.slV; ivb = 2; hb = pt.h==='RHP'? -8 : 8; spin = 2600; 
@@ -1175,43 +1116,29 @@
             relSide += pt.h==='RHP' ? 0.2 : -0.2; ext -= 0.2;
           } else if(rand > 0.95) { 
             type = 'Curveball'; velo = pt.cbV; ivb = -8; hb = pt.h==='RHP'? -6 : 6; spin = 2800; 
-            ht = 0.0+Math.random()*1.5; 
-            relHt += 0.2; ext -= 0.3;
+            ht = 0.0+Math.random()*1.5; relHt += 0.2; ext -= 0.3;
           }
 
-          velo += (Math.random()-0.5)*2.5;
-          ivb += (Math.random()-0.5)*3;
-          hb += (Math.random()-0.5)*3;
-          spin += (Math.random()-0.5)*150;
+          velo += (Math.random()-0.5)*2.5; ivb += (Math.random()-0.5)*3; hb += (Math.random()-0.5)*3; spin += (Math.random()-0.5)*150;
           
-          let call = 'BallCalled'; let exit = 0; let ang = 0;
-          const x = Math.abs(side), z = ht;
+          let call = 'BallCalled', exit = 0, ang = 0, x = Math.abs(side), z = ht;
           const inZ = x<=0.83 && z>=1.5 && z<=3.5;
           
           if(inZ) {
             const swingRand = Math.random();
-            if(swingRand < 0.3) call = 'StrikeCalled';
-            else if(swingRand < 0.5) call = 'StrikeSwinging';
-            else if(swingRand < 0.7) call = 'Foul';
-            else { call = 'InPlay'; exit = 75 + Math.random()*35; ang = (Math.random()-0.5)*60; }
-          } else {
-            if(Math.random() < 0.2) call = 'StrikeSwinging';
-          }
+            if(swingRand < 0.3) call = 'StrikeCalled'; else if(swingRand < 0.5) call = 'StrikeSwinging';
+            else if(swingRand < 0.7) call = 'Foul'; else { call = 'InPlay'; exit = 75 + Math.random()*35; ang = (Math.random()-0.5)*60; }
+          } else { if(Math.random() < 0.2) call = 'StrikeSwinging'; }
 
           p.push({
             Pitcher:pt.n, PitcherThrows:pt.h, Date:'2026-03-24', AutoPitchType:type, 
             RelSpeed:velo, InducedVertBreak:ivb, HorzBreak:hb, SpinRate:spin, 
             PlateLocSide:side, PlateLocHeight:ht, PitchCall:call, RelHeight:relHt,
-            RelSide:relSide, Extension:ext, 
-            ExitSpeed:exit, Angle:ang, Balls: Math.floor(Math.random()*4), Strikes: Math.floor(Math.random()*3)
+            RelSide:relSide, Extension:ext, ExitSpeed:exit, Angle:ang, Balls: Math.floor(Math.random()*4), Strikes: Math.floor(Math.random()*3)
           });
         }
       });
-      
-      AppState.allPitches=p; 
-      window.processPitchesData(); 
-      sortLeaderboard('strikePct');
-      window.setListView();
+      AppState.allPitches=p; window.processPitchesData(); sortLeaderboard('strikePct'); window.setListView();
     }
   </script>
 
@@ -1232,78 +1159,69 @@
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const statusEl = document.getElementById('cloud-status');
-    if(statusEl) {
-      statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Connected';
-      statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
-    }
+    // Initial load UI
+    updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
 
-    // UPDATED COMPRESSION LOGIC
     window.saveToFraniliticsCloud = async function(sessionPayload) {
       try {
         const sessionId = Math.random().toString(36).substring(2, 9);
-        const origText = statusEl.innerHTML;
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Saving...', 'bg-amber-500/20 text-amber-400 border-amber-500/50');
 
-        // Compress the raw pitch data to bypass the 1MB Firestore limit
         const jsonString = JSON.stringify(sessionPayload);
         const compressedData = LZString.compressToUTF16(jsonString);
 
         await setDoc(doc(db, "pitch_reports", sessionId), {
-          data_compressed: compressedData, // Use the compressed string
+          data_compressed: compressedData,
           appName: "Franilitics",
           createdAt: new Date().toISOString()
         });
 
         const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
         await navigator.clipboard.writeText(shareUrl);
-        statusEl.innerHTML = origText;
-        alert("Report saved to cloud! Share link copied:\n" + shareUrl);
+        updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
+        alert("Report saved to cloud! Share link copied:
+" + shareUrl);
 
       } catch (err) {
         console.error("Cloud save failed:", err);
-        statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Save Error';
+        updateStatusUI('<i class="fa-solid fa-triangle-exclamation"></i> Error', 'bg-rose-500/20 text-rose-400 border-rose-500/50');
         alert("Failed to save report: " + err.message);
       }
     };
 
-    async function loadFraniliticsReportFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const reportId = params.get("report");
-
-      if (!reportId) return;
-
+    window.loadFraniliticsReportFromUrl = async function(reportId) {
       try {
-        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Loading...', 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50');
         const docRef = doc(db, "pitch_reports", reportId);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
           const cloudData = docSnap.data();
-          
           let finalData;
-          // Check if data is compressed or legacy uncompressed
           if (cloudData.data_compressed) {
             finalData = JSON.parse(LZString.decompressFromUTF16(cloudData.data_compressed));
           } else {
             finalData = cloudData.data;
           }
-
           window.AppState.allPitches = finalData;
           window.processPitchesData();
           window.setListView();
-          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Synced';
+          updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Synced', 'bg-sky-500/20 text-sky-400 border-sky-500/50');
         } else {
           alert("This report could not be found or the link is invalid.");
-          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Connected';
+          updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
+          // fallback to local
+          const stored = localStorage.getItem('franilitics_pitches');
+          if(stored && stored !== '[]') { AppState.allPitches = JSON.parse(stored); processPitchesData(); setListView(); }
         }
       } catch (err) {
         console.error("Cloud load failed:", err);
-        statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Load Error';
+        updateStatusUI('<i class="fa-solid fa-triangle-exclamation"></i> Load Error', 'bg-rose-500/20 text-rose-400 border-rose-500/50');
       }
-    }
-
-    window.addEventListener("DOMContentLoaded", loadFraniliticsReportFromUrl);
+    };
+    
+    // Explicitly call the flow manager now that functions are defined
+    window.initializeAppFlow();
   </script>
 
   <script>
