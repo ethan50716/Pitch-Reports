@@ -19,22 +19,14 @@
     ::-webkit-scrollbar { width: 4px; height: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
-    /* Hide scrollbar for mobile header buttons */
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
     .sort-icon.active { color: #38bdf8; }
-    
-    .glass-card {
-      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(7, 11, 20, 0.95) 100%);
-      backdrop-filter: blur(10px);
-      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0,0,0,0.5);
-    }
+    .glass-card { background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(7, 11, 20, 0.95) 100%); backdrop-filter: blur(10px); box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0,0,0,0.5); }
     .text-glow-green { text-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
     .text-glow-amber { text-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
     .text-glow-rose { text-shadow: 0 0 12px rgba(244, 63, 94, 0.4); }
-    
     .table-container { border-radius: 0.5rem; overflow-x: auto; border: 1px solid rgba(51, 65, 85, 0.5); -webkit-overflow-scrolling: touch; }
     th { letter-spacing: 0.05em; font-size: 0.65rem; white-space: nowrap; }
     td { white-space: nowrap; }
@@ -42,11 +34,9 @@
 </head>
 <body class="bg-gradient-to-br from-[#050914] to-[#0a101d] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30 pb-safe">
 
-  <!-- MOBILE-OPTIMIZED HEADER -->
   <header class="border-b border-slate-800/80 bg-[#070b14]/90 backdrop-blur-md sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)] pt-safe">
     <div class="max-w-[95%] mx-auto px-2 md:px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
       
-      <!-- Top Row Mobile: Logo + Status -->
       <div class="flex items-center justify-between w-full md:w-auto">
         <div class="flex items-center gap-3 cursor-pointer group" onclick="setListView()">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(14,165,233,0.3)] ring-1 ring-white/20 group-hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all shrink-0">
@@ -65,14 +55,13 @@
         </div>
       </div>
       
-      <!-- Bottom Row Mobile: Horizontal Scrollable Action Buttons -->
       <div class="flex items-center gap-2 overflow-x-auto scrollbar-hide w-full md:w-auto pb-1 md:pb-0">
         <div id="cloud-status-desktop" class="px-3 py-2 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 hidden md:flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 shrink-0">
           <i class="fa-solid fa-cloud"></i> Local Mode
         </div>
         
         <button onclick="triggerCloudShare()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-indigo-600/90 hover:bg-indigo-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(79,70,229,0.2)] border border-indigo-500/50 shrink-0">
-          <i class="fa-solid fa-share-nodes"></i> <span>Share</span>
+          <i class="fa-solid fa-arrows-rotate"></i> <span>Sync Database</span>
         </button>
 
         <button onclick="setListView()" class="px-4 py-2.5 md:py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50 shrink-0">
@@ -398,7 +387,6 @@
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.font.family = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
-    // UI HELPER: Update status UI across mobile and desktop tags
     function updateStatusUI(iconHtml, extraClasses = '') {
       const elMobile = document.getElementById('cloud-status');
       const elDesktop = document.getElementById('cloud-status-desktop');
@@ -406,34 +394,20 @@
       if (elDesktop) { elDesktop.innerHTML = iconHtml; elDesktop.className = 'px-3 py-2 rounded-lg text-[10px] font-bold border hidden md:flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 shrink-0 ' + extraClasses; }
     }
 
-    // --- BULLETPROOF INIT SEQUENCE ---
+    // --- NEW CLOUD-FIRST MASTER DATABASE WORKFLOW ---
     window.initializeAppFlow = async function() {
       const params = new URLSearchParams(window.location.search);
-      const reportId = params.get("report");
+      // Default to "master_db" if no specific report link is provided
+      const reportId = params.get("report") || "master_db";
 
-      if (reportId) {
-        // Mode 1: Cloud Shared Report
-        const checkAndLoad = () => {
-          if (window.loadFraniliticsReportFromUrl) {
-             window.loadFraniliticsReportFromUrl(reportId);
-          } else {
-             setTimeout(checkAndLoad, 100);
-          }
-        };
-        checkAndLoad();
-      } else {
-        // Mode 2: Local Data or Sample Data
-        const stored = localStorage.getItem('franilitics_pitches');
-        if (stored && stored !== '[]') { 
-          try { 
-            AppState.allPitches = JSON.parse(stored); 
-            window.processPitchesData(); 
-            window.setListView(); 
-            return; 
-          } catch (e) { console.error("Error loading stored pitches", e); } 
+      const checkAndLoad = () => {
+        if (window.loadFraniliticsReportFromUrl) {
+           window.loadFraniliticsReportFromUrl(reportId);
+        } else {
+           setTimeout(checkAndLoad, 100);
         }
-        window.loadSampleData();
-      }
+      };
+      checkAndLoad();
     };
 
     window.onload = function() {
@@ -1074,6 +1048,8 @@
             AppState.allPitches = [...AppState.allPitches, ...newPitches]; 
             localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches)); 
             window.processPitchesData(); closeUploadModal(); window.setListView(); 
+            // Alert the user that they still need to hit sync to push this to the cloud
+            alert("CSV Uploaded Locally! Don't forget to click 'Sync Database' at the top to push these changes to the master database.");
           }
         }); 
         e.target.value = '';
@@ -1097,7 +1073,7 @@
       }
     };
     
-    function loadSampleData() {
+    window.loadSampleData = function() {
       const p=[]; 
       const profiles = [
         {n:'Cole Parker', h:'RHP', fbV:94.5, slV:84, chV:86, cbV: 79},
@@ -1167,16 +1143,24 @@
     const db = getFirestore(app);
 
     // Initial load UI
-    updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
+    updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Initializing...', 'bg-slate-500/20 text-slate-400 border-slate-500/50');
 
     window.saveToFraniliticsCloud = async function(sessionPayload) {
       try {
-        const sessionId = Math.random().toString(36).substring(2, 9);
-        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Saving...', 'bg-amber-500/20 text-amber-400 border-amber-500/50');
+        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Syncing...', 'bg-amber-500/20 text-amber-400 border-amber-500/50');
 
         const jsonString = JSON.stringify(sessionPayload);
         const compressedData = LZString.compressToUTF16(jsonString);
 
+        // ALWAYS SAVE TO THE MASTER DATABASE
+        await setDoc(doc(db, "pitch_reports", "master_db"), {
+          data_compressed: compressedData,
+          appName: "Franilitics",
+          createdAt: new Date().toISOString()
+        });
+
+        // Also save a snapshot just in case they need a specific point in time URL
+        const sessionId = Math.random().toString(36).substring(2, 9);
         await setDoc(doc(db, "pitch_reports", sessionId), {
           data_compressed: compressedData,
           appName: "Franilitics",
@@ -1184,9 +1168,15 @@
         });
 
         const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
-        await navigator.clipboard.writeText(shareUrl);
-        updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
-        alert("Report saved to cloud! Share link copied: " + shareUrl);
+        
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+        } catch(e) {
+          console.warn("Clipboard API failed, skipping auto-copy.");
+        }
+
+        updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Live', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
+        alert("Database Synced!\n\nAnyone visiting your main GitHub link will now automatically see these updated pitches.");
 
       } catch (err) {
         console.error("Cloud save failed:", err);
@@ -1197,7 +1187,7 @@
 
     window.loadFraniliticsReportFromUrl = async function(reportId) {
       try {
-        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Loading...', 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50');
+        updateStatusUI('<i class="fa-solid fa-spinner fa-spin"></i> Fetching Cloud...', 'bg-indigo-500/20 text-indigo-400 border-indigo-500/50');
         const docRef = doc(db, "pitch_reports", reportId);
         const docSnap = await getDoc(docRef);
 
@@ -1214,11 +1204,22 @@
           window.setListView();
           updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Synced', 'bg-sky-500/20 text-sky-400 border-sky-500/50');
         } else {
-          alert("This report could not be found or the link is invalid.");
-          updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
-          // fallback to local
-          const stored = localStorage.getItem('franilitics_pitches');
-          if(stored && stored !== '[]') { AppState.allPitches = JSON.parse(stored); processPitchesData(); setListView(); }
+          // If we tried to load master_db and it doesn't exist yet, just load local/sample data quietly
+          if (reportId === "master_db") {
+            const stored = localStorage.getItem('franilitics_pitches');
+            if(stored && stored !== '[]') { 
+                window.AppState.allPitches = JSON.parse(stored); 
+                window.processPitchesData(); 
+                window.setListView(); 
+                updateStatusUI('<i class="fa-solid fa-hard-drive"></i> Local', 'bg-slate-500/20 text-slate-400 border-slate-500/50');
+            } else {
+                window.loadSampleData();
+                updateStatusUI('<i class="fa-solid fa-hard-drive"></i> Sample Data', 'bg-slate-500/20 text-slate-400 border-slate-500/50');
+            }
+          } else {
+            alert("This specific report could not be found or the link is invalid.");
+            updateStatusUI('<i class="fa-solid fa-triangle-exclamation"></i> Invalid Link', 'bg-rose-500/20 text-rose-400 border-rose-500/50');
+          }
         }
       } catch (err) {
         console.error("Cloud load failed:", err);
