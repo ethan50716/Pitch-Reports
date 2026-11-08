@@ -55,6 +55,11 @@
         <div id="cloud-status" class="px-3 py-2 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex">
           <i class="fa-solid fa-cloud"></i> Local Mode
         </div>
+        
+        <button onclick="triggerCloudShare()" class="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600/90 hover:bg-indigo-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(79,70,229,0.2)] border border-indigo-500/50">
+          <i class="fa-solid fa-share-nodes"></i> <span>Share Report</span>
+        </button>
+
         <button onclick="setListView()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50">
           <i class="fa-solid fa-users"></i> <span>Roster</span>
         </button>
@@ -91,7 +96,6 @@
       
       <!-- Player Header & Filters -->
       <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
-        <!-- Background Accent -->
         <div class="absolute top-0 right-0 w-96 h-96 bg-sky-600/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
         
         <div class="flex items-center gap-5 relative z-10">
@@ -106,7 +110,6 @@
         </div>
         
         <div class="flex flex-wrap items-center gap-3 relative z-10">
-          <!-- Legend -->
           <div class="hidden xl:flex items-center gap-4 text-[10px] font-mono text-slate-300 bg-black/40 px-4 py-2 rounded-xl border border-slate-700/50 shadow-inner">
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span> Plus / Ace</span>
             <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span> D1 Avg</span>
@@ -131,7 +134,7 @@
         </div>
       </div>
 
-      <!-- CORE KPIS (5 blocks) -->
+      <!-- CORE KPIS -->
       <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
           <div class="flex justify-between items-center mb-2">
@@ -201,16 +204,12 @@
         </div>
       </div>
 
-      <!-- ADVANCED DIAGNOSTICS ROW 1: LEVERAGE & CONSISTENCY -->
+      <!-- ADVANCED DIAGNOSTICS ROW 1 -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- Leverage Splits -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-sky-400"></i> Count Leverage</h3>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1" id="leverage-cards">
-            <!-- Populated by JS -->
-          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1" id="leverage-cards"></div>
         </div>
-        <!-- Consistency Diagnostics -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-microscope text-sky-400"></i> Arsenal Consistency</h3>
           <div class="table-container flex-1">
@@ -230,14 +229,12 @@
         </div>
       </div>
 
-      <!-- ADVANCED DIAGNOSTICS ROW 2: ATTACK ZONES & SPRAY CHART -->
+      <!-- ADVANCED DIAGNOSTICS ROW 2 -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <!-- Attack Zones -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-center gap-6">
           <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-sky-400"></i> Zone Command Execution</h3>
           <div id="attack-zone-bars" class="w-full flex flex-col gap-4 text-xs font-mono"></div>
         </div>
-        <!-- Spray Chart -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-baseball-bat-ball text-sky-400"></i> Spray Chart</h3>
@@ -252,9 +249,8 @@
         </div>
       </div>
 
-      <!-- ROW 3: VISUALIZERS (STRIKE ZONE, PITCH SEP, MOVEMENT) -->
+      <!-- ROW 3: VISUALIZERS -->
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <!-- Strike Zone -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <div class="flex justify-between items-center mb-4">
             <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-sky-400"></i> Strike Zone</h3>
@@ -267,14 +263,12 @@
             <canvas id="strikeZoneCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
-        <!-- Pitch Separation (Velo vs IVB) -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt text-sky-400"></i> Pitch Separation</h3>
           <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
             <canvas id="pitchSepCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
-        <!-- Movement Chart -->
         <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
           <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-split-up-and-left text-sky-400"></i> Movement Plot</h3>
           <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
@@ -377,6 +371,27 @@
       loadSampleData();
     };
 
+    // Make functions global so they can be called by UI and Firebase scripts
+    window.processPitchesData = function() {
+      AppState.pitchers = {};
+      AppState.allPitches.forEach(p => {
+        const name = (p.Pitcher || 'Unknown').trim();
+        const date = (p.Date || '2026-01-01').trim();
+        const hand = (String(p.PitcherThrows || 'R').toUpperCase().startsWith('L')) ? 'LHP' : 'RHP';
+        if (!AppState.pitchers[name]) AppState.pitchers[name] = { name, hand, outings: {}, allPitches: [] };
+        AppState.pitchers[name].allPitches.push(p);
+        if (!AppState.pitchers[name].outings[date]) AppState.pitchers[name].outings[date] = [];
+        AppState.pitchers[name].outings[date].push(p);
+      });
+    };
+
+    window.setListView = function() { 
+      document.getElementById('view-roster').classList.remove('hidden'); 
+      document.getElementById('view-pitcher').classList.add('hidden'); 
+      document.getElementById('view-master').classList.add('hidden'); 
+      renderRosterList(); 
+    };
+
     function getPitchType(p) {
       let raw = AppState.tagSource === 'auto' ? (p.AutoPitchType || p.TaggedPitchType || '') : (p.TaggedPitchType || p.AutoPitchType || '');
       let c = String(raw).toLowerCase();
@@ -410,19 +425,6 @@
       if(metric==='strikePct') return n>=64 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=58 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
       if(metric==='whiffPct') return n>=24 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=18 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
       return { text: 'text-slate-200', bg: 'bg-slate-400', glow: '' };
-    }
-
-    function processPitchesData() {
-      AppState.pitchers = {};
-      AppState.allPitches.forEach(p => {
-        const name = (p.Pitcher || 'Unknown').trim();
-        const date = (p.Date || '2026-01-01').trim();
-        const hand = (String(p.PitcherThrows || 'R').toUpperCase().startsWith('L')) ? 'LHP' : 'RHP';
-        if (!AppState.pitchers[name]) AppState.pitchers[name] = { name, hand, outings: {}, allPitches: [] };
-        AppState.pitchers[name].allPitches.push(p);
-        if (!AppState.pitchers[name].outings[date]) AppState.pitchers[name].outings[date] = [];
-        AppState.pitchers[name].outings[date].push(p);
-      });
     }
 
     function computeMetrics(pitches) {
@@ -468,13 +470,6 @@
       };
     }
 
-    function setListView() { 
-      document.getElementById('view-roster').classList.remove('hidden'); 
-      document.getElementById('view-pitcher').classList.add('hidden'); 
-      document.getElementById('view-master').classList.add('hidden'); 
-      renderRosterList(); 
-    }
-    
     function setMasterView() { 
       document.getElementById('view-roster').classList.add('hidden'); 
       document.getElementById('view-pitcher').classList.add('hidden'); 
@@ -1014,185 +1009,106 @@
 
   <!-- FIREBASE CLOUD SYNC MODULE -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    // 1. Load Firebase modules via CDN (no Node or npm required)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'franilitics-trackman-portal';
-    const fbConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
-    const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-    
-    if (fbConfigStr) {
-      try {
-        const firebaseConfig = JSON.parse(fbConfigStr);
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
+    // 2. Your project configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSy...", 
+      authDomain: "pitcher-reports.firebaseapp.com",
+      projectId: "pitcher-reports",
+      storageBucket: "pitcher-reports.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "1:1234567890:web:abcdef..."
+    };
 
-        const authPromise = initialToken ? signInWithCustomToken(auth, initialToken) : signInAnonymously(auth);
-        
-        authPromise.then((userCred) => {
-          const statusEl = document.getElementById('cloud-status');
-          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Sync: Live';
-          statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
+    // 3. Initialize Firebase & Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-          // Override local file handler to push to Cloud Database
-          window.handleFileSelect = function(e) {
-            if(e.target.files.length) {
-              statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
-              Papa.parse(e.target.files[0], { 
-                header:true, skipEmptyLines: true,
-                complete: async r => { 
-                  const timestampId = Date.now();
-                  
-                  // Chunk the array into smaller sizes to stay safely under 1MB Firestore document limit
-                  // TrackMan CSVs are very wide, so we use a small chunk size (150 rows)
-                  const CHUNK_SIZE = 150;
-                  const chunks = [];
-                  for (let i = 0; i < r.data.length; i += CHUNK_SIZE) {
-                    chunks.push(r.data.slice(i, i + CHUNK_SIZE));
-                  }
-                  
-                  try {
-                    const uploadPromises = chunks.map((chunk, i) => {
-                      const uploadId = `csv_${timestampId}_part${i}`;
-                      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'csv_uploads', uploadId);
-                      return setDoc(docRef, { pitches: chunk, timestamp: timestampId, part: i, totalParts: chunks.length });
-                    });
-                    
-                    await Promise.all(uploadPromises);
-                    
-                    window.closeUploadModal();
-                    statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Sync Complete';
-                    setTimeout(() => statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Sync: Live', 3000);
-                  } catch (err) {
-                    console.error("Firebase upload error:", err);
-                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sync Error';
-                  }
-                }
-              }); 
-            }
-          };
-
-          // Listen globally for newly uploaded CSVs in the cloud
-          const uploadsRef = collection(db, 'artifacts', appId, 'public', 'data', 'csv_uploads');
-          onSnapshot(uploadsRef, (snapshot) => {
-            if (!snapshot.empty) {
-              let allCloudPitches = [];
-              snapshot.forEach(doc => {
-                const data = doc.data();
-                if(data.pitches && Array.isArray(data.pitches)) {
-                  allCloudPitches = allCloudPitches.concat(data.pitches);
-                }
-              });
-              
-              if(allCloudPitches.length > 0) {
-                // Update global data from cloud
-                window.AppState.allPitches = allCloudPitches;
-                window.processPitchesData();
-                
-                // Refresh the active view
-                if (!document.getElementById('view-roster').classList.contains('hidden')) {
-                  window.renderRosterList();
-                } else if (!document.getElementById('view-master').classList.contains('hidden')) {
-                  window.renderLeaderboard();
-                } else {
-                  window.renderProfile();
-                }
-              }
-            }
-          }, (err) => {
-             console.error("Firestore listen error", err);
-          });
-
-        }).catch(err => console.error("Auth error:", err));
-      } catch(e) { console.error("Firebase init failed", e); }
+    // Update the UI immediately to reflect we are connected
+    const statusEl = document.getElementById('cloud-status');
+    if(statusEl) {
+      statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Connected';
+      statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
     }
-  </script>
-  <script type="module">
-  // 1. Load Firebase modules via CDN (no Node or npm required)
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  // 2. Your project configuration
-  // Replace apiKey, messagingSenderId, and appId with the values shown in your Firebase Console
-  const firebaseConfig = {
-    apiKey: "AIzaSy...", 
-    authDomain: "pitcher-reports.firebaseapp.com",
-    projectId: "pitcher-reports",
-    storageBucket: "pitcher-reports.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef..."
-  };
-
-  // 3. Initialize Firebase & Firestore
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
-
-  // 4. Save to Cloud & Generate Share Link
-  // Call this when you want to save current pitch logs, TrackMan data, or reports
-  window.saveToFraniliticsCloud = async function(sessionPayload) {
-    try {
-      // Create a 7-character unique session key
-      const sessionId = Math.random().toString(36).substring(2, 9);
-
-      // Write document to the 'pitch_reports' collection
-      await setDoc(doc(db, "pitch_reports", sessionId), {
-        data: sessionPayload,
-        appName: "Franilitics",
-        createdAt: new Date().toISOString()
-      });
-
-      // Construct the shareable link with the ID
-      const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
-
-      // Copy straight to your clipboard
-      await navigator.clipboard.writeText(shareUrl);
-      alert("Report saved to cloud! Share link copied:\n" + shareUrl);
-
-      return shareUrl;
-    } catch (err) {
-      console.error("Cloud save failed:", err);
-      alert("Failed to save report: " + err.message);
-    }
-  };
-
-  // 5. Automatically load from Cloud when a link is opened
-  async function loadFraniliticsReportFromUrl() {
-    const params = new URLSearchParams(window.location.search);
-    const reportId = params.get("report");
-
-    // If there is no ?report= in the URL, the user opened a clean workspace
-    if (!reportId) return;
-
-    try {
-      const docRef = doc(db, "pitch_reports", reportId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const cloudData = docSnap.data().data;
-        console.log("Franilitics data retrieved from cloud:", cloudData);
-
-        // --- CONNECT TO YOUR APP HERE ---
-        // Pass cloudData to your app's existing load or render function
-        // (for example: loadPitchData(cloudData); or renderDashboard(cloudData);)
-        if (typeof window.loadPitchData === "function") {
-          window.loadPitchData(cloudData);
-        } else {
-          // Fallback event if you prefer listening for an event:
-          window.dispatchEvent(new CustomEvent("franilitics:dataLoaded", { detail: cloudData }));
-        }
-
-      } else {
-        alert("This report could not be found or the link is invalid.");
+    // 4. Save to Cloud & Generate Share Link
+    window.saveToFraniliticsCloud = async function(sessionPayload) {
+      if (firebaseConfig.apiKey.includes("AIzaSy...")) {
+        alert("Action required: You need to paste your real Firebase apiKey in the HTML file before you can share!");
+        return;
       }
-    } catch (err) {
-      console.error("Cloud load failed:", err);
-    }
-  }
+      try {
+        const sessionId = Math.random().toString(36).substring(2, 9);
+        const origText = statusEl.innerHTML;
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
-  // Check URL parameters as soon as the HTML elements finish loading
-  window.addEventListener("DOMContentLoaded", loadFraniliticsReportFromUrl);
-</script>
+        await setDoc(doc(db, "pitch_reports", sessionId), {
+          data: sessionPayload,
+          appName: "Franilitics",
+          createdAt: new Date().toISOString()
+        });
+
+        const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
+        await navigator.clipboard.writeText(shareUrl);
+        statusEl.innerHTML = origText;
+        alert("Report saved to cloud! Share link copied:\n" + shareUrl);
+
+      } catch (err) {
+        console.error("Cloud save failed:", err);
+        statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Save Error';
+        alert("Failed to save report: " + err.message);
+      }
+    };
+
+    // 5. Automatically load from Cloud when a link is opened
+    async function loadFraniliticsReportFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      const reportId = params.get("report");
+
+      if (!reportId) return;
+
+      try {
+        statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+        const docRef = doc(db, "pitch_reports", reportId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const cloudData = docSnap.data().data;
+          console.log("Franilitics data retrieved from cloud");
+
+          // Wire directly into your AppState
+          window.AppState.allPitches = cloudData;
+          window.processPitchesData();
+          window.setListView();
+          
+          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Synced';
+        } else {
+          alert("This report could not be found or the link is invalid.");
+          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Connected';
+        }
+      } catch (err) {
+        console.error("Cloud load failed:", err);
+        statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Load Error';
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", loadFraniliticsReportFromUrl);
+  </script>
+
+  <script>
+    // 6. Connect the new UI Share Button to the Firebase script
+    window.triggerCloudShare = function() {
+      if (!window.AppState || window.AppState.allPitches.length === 0) {
+        alert("No data to share! Please upload a TrackMan CSV first.");
+        return;
+      }
+      if (window.saveToFraniliticsCloud) {
+        window.saveToFraniliticsCloud(window.AppState.allPitches);
+      }
+    };
+  </script>
 </body>
 </html>
