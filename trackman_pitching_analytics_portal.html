@@ -1,0 +1,488 @@
+<!-- ... existing code ... -->
+      <!-- PROMINENT COACH / PITCHER PRIORITY KPI DASHBOARD -->
+      <div>
+        <div class="flex items-center justify-between mb-2.5">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-crosshairs text-sky-400"></i> Core Competitive KPIs (Franilitics Targets)
+          </h3>
+          <span class="text-[11px] text-slate-400 font-mono flex items-center gap-2">
+            <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span> Plus / D1 Ace</span>
+            <span class="text-amber-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_rgba(251,191,36,0.8)]"></span> D1 / Pro Avg</span>
+            <span class="text-rose-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block shadow-[0_0_6px_rgba(244,63,94,0.8)]"></span> Area of Focus</span>
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+          <!-- 1-1 Win % -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
+              <span>1-1 Count Win %</span>
+              <span id="kpi-oneone-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            </div>
+            <div id="kpi-oneone" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
+            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;58.0% (Avg: ~52%)</div>
+          </div>
+
+          <!-- FPS % -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
+              <span>First Pitch Strike %</span>
+              <span id="kpi-fps-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            </div>
+            <div id="kpi-fps" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
+            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;62.0% (Avg: 58.4%)</div>
+          </div>
+
+          <!-- <= 4 Pitches / PA -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
+              <span>&le; 4 Pitches / PA %</span>
+              <span id="kpi-fourless-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            </div>
+            <div id="kpi-fourless" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
+            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;52.0% (Avg: ~49%)</div>
+          </div>
+
+          <!-- Ground Ball % -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
+              <span>Ground Ball (GB) %</span>
+              <span id="kpi-gb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            </div>
+            <div id="kpi-gb" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
+            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;48.0% (Avg: ~44%)</div>
+          </div>
+
+          <!-- K : BB Ratio -->
+          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition col-span-2 md:col-span-1">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
+              <span>K : BB Ratio</span>
+              <span id="kpi-kbb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+            </div>
+            <div id="kpi-kbb" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
+            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;3.00 (Avg: ~2.10)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COUNT LEVERAGE & MECHANICAL CONSISTENCY GRID (NEW) -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Count Leverage & Situational Splits -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-scale-balanced text-sky-400"></i> Count Leverage & Situational Splits
+            </h4>
+            <span class="text-[11px] text-slate-400 font-mono">Ahead vs. Behind Execution</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="count-leverage-cards">
+            <!-- Dynamic count leverage cards populated by JS -->
+          </div>
+        </div>
+
+        <!-- Pitch Velocity, Spin & Mechanical Consistency Diagnostics -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-gauge-high text-sky-400"></i> Arsenal Consistency & Repeatability
+            </h4>
+            <span class="text-[11px] text-slate-400 font-mono">&Delta; Range & Slot Repeatability</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="text-[10px] uppercase text-slate-400 border-b border-slate-800 bg-slate-950/40">
+                <tr>
+                  <th class="py-1.5 px-2">Pitch</th>
+                  <th class="py-1.5 px-2">Velo Spread (&Delta;)</th>
+                  <th class="py-1.5 px-2">Velo StdDev (&sigma;)</th>
+                  <th class="py-1.5 px-2">Spin Range</th>
+                  <th class="py-1.5 px-2">Rel Ht StdDev</th>
+                  <th class="py-1.5 px-2 text-right">Rating</th>
+                </tr>
+              </thead>
+              <tbody id="arsenal-consistency-tbody" class="divide-y divide-slate-800/60">
+                <!-- Dynamic consistency rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ATTACK ZONE COMMAND & SPRAY CHART SECTION -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <!-- Attack Zone Execution Breakdown -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-bullseye text-sky-400"></i> Attack Zone Execution (Heart vs. Shadow)
+            </h4>
+            <span class="text-[11px] text-slate-400 font-mono">Target: &gt;42% Shadow, &lt;22% Heart</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2" id="attack-zone-kpi-grid">
+            <!-- Dynamic Heart/Shadow/Chase/Waste cards -->
+          </div>
+
+          <!-- Stacked Zone Distribution Bar -->
+          <div class="mt-3">
+            <div class="flex justify-between text-[11px] text-slate-400 font-mono mb-1">
+              <span>Attack Distribution</span>
+              <span id="attack-distribution-summary" class="text-slate-300 font-bold"></span>
+            </div>
+            <div class="h-3 w-full bg-slate-950 rounded-full flex overflow-hidden border border-slate-800" id="attack-distribution-bar">
+              <!-- Dynamically populated bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Batted Ball Diamond Spray Chart -->
+        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
+          <div class="flex items-center justify-between mb-2">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-baseball text-sky-400"></i> Batted Ball Diamond Spray Chart
+            </h4>
+            <div class="flex items-center gap-2 text-[10px] font-mono">
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> &ge;95 mph Hard-Hit</span>
+              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span> &lt;95 mph</span>
+            </div>
+          </div>
+          <div class="relative w-full aspect-[4/3] max-h-56 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
+            <canvas id="battedBallCanvas" class="w-full h-full block"></canvas>
+            <div id="no-batted-balls-msg" class="hidden absolute text-xs text-slate-500 font-mono">No balls in play recorded in this sample</div>
+          </div>
+        </div>
+      </div>
+<!-- ... existing code ... -->
+      // Render count leverage cards
+      renderCountLeverageCards(pitches);
+
+      // Render Arsenal Consistency diagnostics
+      renderArsenalConsistencyTable(pitches);
+
+      // Render Attack Zone metrics & stacked bar
+      renderAttackZoneBreakdown(pitches);
+
+      // Render Batted Ball Spray Chart
+      renderBattedBallSprayChart(pitches);
+
+      // Render plots
+      drawStrikeZonePlot();
+      renderMovementChart();
+      renderReleaseSlotChart();
+      renderVeloMovementSeparationChart();
+      renderCountMatrix(pitches);
+<!-- ... existing code ... -->
+    /**
+     * Renders Count Leverage Cards (Ahead, Behind, Even, 2-Strikes)
+     */
+    function renderCountLeverageCards(pitches) {
+      const container = document.getElementById('count-leverage-cards');
+      if (!container) return;
+
+      const splits = {
+        ahead: { label: 'Ahead (0-1, 0-2, 1-2)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-emerald-400' },
+        behind: { label: 'Behind (1-0, 2-0, 3-1)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-rose-400' },
+        even: { label: 'Even (0-0, 1-1, 2-2)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-sky-400' },
+        twoStrikes: { label: '2-Strike Counts', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-amber-400' }
+      };
+
+      pitches.forEach(p => {
+        const b = p.Balls !== undefined ? p.Balls : (p.balls || 0);
+        const s = p.Strikes !== undefined ? p.Strikes : (p.strikes || 0);
+        const isStrike = isTrackmanStrike(p);
+        const isWhiff = isTrackmanWhiff(p);
+        const isSwing = isTrackmanSwing(p);
+        const isZone = isPitchInRulebookZone(p);
+
+        let key = null;
+        if (s > b) key = 'ahead';
+        else if (b > s) key = 'behind';
+        else key = 'even';
+
+        if (splits[key]) {
+          splits[key].total++;
+          if (isStrike) splits[key].strikes++;
+          if (isSwing) splits[key].swings++;
+          if (isWhiff) splits[key].whiffs++;
+          if (!isZone) {
+            splits[key].oZone++;
+            if (isSwing) splits[key].chase++;
+          }
+        }
+
+        if (s === 2) {
+          splits.twoStrikes.total++;
+          if (isStrike) splits.twoStrikes.strikes++;
+          if (isSwing) splits.twoStrikes.swings++;
+          if (isWhiff) splits.twoStrikes.whiffs++;
+          if (!isZone) {
+            splits.twoStrikes.oZone++;
+            if (isSwing) splits.twoStrikes.chase++;
+          }
+        }
+      });
+
+      container.innerHTML = Object.keys(splits).map(k => {
+        const d = splits[k];
+        const strikePct = d.total > 0 ? ((d.strikes / d.total) * 100).toFixed(1) : '0.0';
+        const whiffPct = d.swings > 0 ? ((d.whiffs / d.swings) * 100).toFixed(1) : '0.0';
+        const chasePct = d.oZone > 0 ? ((d.chase / d.oZone) * 100).toFixed(1) : '0.0';
+
+        return `
+          <div class="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 flex flex-col justify-between">
+            <div>
+              <div class="text-[10px] font-bold uppercase text-slate-400 truncate mb-1">${d.label}</div>
+              <div class="text-lg font-black font-mono ${d.color}">${d.total} <span class="text-[10px] text-slate-500 font-normal">pitches</span></div>
+            </div>
+            <div class="space-y-1 mt-2 text-[10px] font-mono text-slate-300">
+              <div class="flex justify-between"><span>Strike %</span> <span class="font-bold">${strikePct}%</span></div>
+              <div class="flex justify-between"><span>Whiff %</span> <span class="font-bold text-sky-400">${whiffPct}%</span></div>
+              <div class="flex justify-between"><span>Chase %</span> <span class="font-bold text-amber-400">${chasePct}%</span></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Renders Arsenal Consistency Diagnostics Table
+     */
+    function renderArsenalConsistencyTable(pitches) {
+      const tbody = document.getElementById('arsenal-consistency-tbody');
+      if (!tbody) return;
+
+      const groups = {};
+      pitches.forEach(p => {
+        const type = getPitchType(p);
+        if (!groups[type]) groups[type] = [];
+        groups[type].push(p);
+      });
+
+      const rows = Object.keys(groups).map(type => {
+        const list = groups[type];
+        const velos = list.map(p => parseFloat(p.RelSpeed || p.Velocity || p.velo)).filter(v => !isNaN(v));
+        const spins = list.map(p => parseFloat(p.SpinRate || p.spin_rate)).filter(s => !isNaN(s));
+        const relHeights = list.map(p => parseFloat(p.RelHeight || p.ReleaseHeight)).filter(h => !isNaN(h));
+
+        if (velos.length === 0) return '';
+
+        const minV = Math.min(...velos);
+        const maxV = Math.max(...velos);
+        const deltaV = (maxV - minV).toFixed(1);
+
+        // Standard Deviation of Velo
+        const meanV = velos.reduce((a, b) => a + b, 0) / velos.length;
+        const varianceV = velos.reduce((a, b) => a + Math.pow(b - meanV, 2), 0) / velos.length;
+        const stdDevV = Math.sqrt(varianceV).toFixed(1);
+
+        // Spin Range
+        const minSpin = spins.length ? Math.min(...spins).toFixed(0) : '--';
+        const maxSpin = spins.length ? Math.max(...spins).toFixed(0) : '--';
+
+        // Rel Height Std Dev (in inches)
+        let relHStd = '--';
+        if (relHeights.length > 1) {
+          const meanH = relHeights.reduce((a, b) => a + b, 0) / relHeights.length;
+          const varH = relHeights.reduce((a, b) => a + Math.pow(b - meanH, 2), 0) / relHeights.length;
+          relHStd = (Math.sqrt(varH) * 12).toFixed(1) + '"';
+        }
+
+        // Rating
+        let rating = '<span class="text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">Elite</span>';
+        if (stdDevV > 1.8) {
+          rating = '<span class="text-rose-400 font-bold bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800">Volatile</span>';
+        } else if (stdDevV > 1.2) {
+          rating = '<span class="text-amber-400 font-bold bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800">Solid</span>';
+        }
+
+        return `
+          <tr class="hover:bg-slate-800/40 transition">
+            <td class="py-2 px-2 font-bold text-slate-200">${type} <span class="text-[10px] text-slate-500 font-normal">(${list.length})</span></td>
+            <td class="py-2 px-2 text-slate-300 font-mono">${deltaV} mph</td>
+            <td class="py-2 px-2 text-sky-400 font-mono font-bold">&plusmn;${stdDevV}</td>
+            <td class="py-2 px-2 text-slate-400 font-mono">${minSpin} - ${maxSpin}</td>
+            <td class="py-2 px-2 text-slate-300 font-mono">${relHStd}</td>
+            <td class="py-2 px-2 text-right font-mono">${rating}</td>
+          </tr>
+        `;
+      }).filter(Boolean);
+
+      tbody.innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center py-3 text-slate-500">No pitch data available</td></tr>';
+    }
+
+    /**
+     * Renders Attack Zone Command Breakdown (Heart, Shadow, Chase, Waste)
+     */
+    function renderAttackZoneBreakdown(pitches) {
+      let heart = 0, shadow = 0, chase = 0, waste = 0;
+      const total = pitches.length;
+
+      pitches.forEach(p => {
+        const x = parseFloat(p.PlateLocSide || p.plate_side || 0);
+        const z = parseFloat(p.PlateLocHeight || p.plate_height || 2.5);
+
+        // Heart Zone: Middle of the plate (x in [-0.55, 0.55], z in [2.0, 3.0])
+        if (Math.abs(x) <= 0.55 && z >= 2.0 && z <= 3.0) {
+          heart++;
+        }
+        // Shadow Zone: Edges of strike zone (+/- 1 ball width)
+        else if (Math.abs(x) <= 1.05 && z >= 1.25 && z <= 3.75) {
+          shadow++;
+        }
+        // Chase Zone: Within 1.5 - 2 ball widths of the edge
+        else if (Math.abs(x) <= 1.55 && z >= 0.8 && z <= 4.2) {
+          chase++;
+        }
+        // Waste Zone: Non-competitive
+        else {
+          waste++;
+        }
+      });
+
+      const heartPct = total ? ((heart / total) * 100).toFixed(1) : '0.0';
+      const shadowPct = total ? ((shadow / total) * 100).toFixed(1) : '0.0';
+      const chasePct = total ? ((chase / total) * 100).toFixed(1) : '0.0';
+      const wastePct = total ? ((waste / total) * 100).toFixed(1) : '0.0';
+
+      const grid = document.getElementById('attack-zone-kpi-grid');
+      if (grid) {
+        grid.innerHTML = `
+          <div class="bg-rose-950/40 border border-rose-900/60 rounded-lg p-2.5">
+            <div class="text-[10px] uppercase font-bold text-rose-300">Heart %</div>
+            <div class="text-xl font-black font-mono text-rose-400">${heartPct}%</div>
+            <div class="text-[10px] text-slate-400 font-mono">${heart} pitches</div>
+          </div>
+          <div class="bg-emerald-950/40 border border-emerald-900/60 rounded-lg p-2.5">
+            <div class="text-[10px] uppercase font-bold text-emerald-300">Shadow %</div>
+            <div class="text-xl font-black font-mono text-emerald-400">${shadowPct}%</div>
+            <div class="text-[10px] text-slate-400 font-mono">${shadow} pitches</div>
+          </div>
+          <div class="bg-sky-950/40 border border-sky-900/60 rounded-lg p-2.5">
+            <div class="text-[10px] uppercase font-bold text-sky-300">Chase %</div>
+            <div class="text-xl font-black font-mono text-sky-400">${chasePct}%</div>
+            <div class="text-[10px] text-slate-400 font-mono">${chase} pitches</div>
+          </div>
+          <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-2.5">
+            <div class="text-[10px] uppercase font-bold text-slate-400">Waste %</div>
+            <div class="text-xl font-black font-mono text-slate-300">${wastePct}%</div>
+            <div class="text-[10px] text-slate-500 font-mono">${waste} pitches</div>
+          </div>
+        `;
+      }
+
+      const bar = document.getElementById('attack-distribution-bar');
+      const summary = document.getElementById('attack-distribution-summary');
+      if (bar) {
+        bar.innerHTML = `
+          <div style="width: ${heartPct}%" class="bg-rose-500 h-full" title="Heart: ${heartPct}%"></div>
+          <div style="width: ${shadowPct}%" class="bg-emerald-500 h-full" title="Shadow: ${shadowPct}%"></div>
+          <div style="width: ${chasePct}%" class="bg-sky-500 h-full" title="Chase: ${chasePct}%"></div>
+          <div style="width: ${wastePct}%" class="bg-slate-600 h-full" title="Waste: ${wastePct}%"></div>
+        `;
+      }
+      if (summary) {
+        summary.textContent = `${shadowPct}% Shadow (Command) | ${heartPct}% Heart (Damage)`;
+      }
+    }
+
+    /**
+     * Renders Diamond Spray Chart of Balls In Play
+     */
+    function renderBattedBallSprayChart(pitches) {
+      const canvas = document.getElementById('battedBallCanvas');
+      const noMsg = document.getElementById('no-batted-balls-msg');
+      if (!canvas) return;
+
+      const ctx = canvas.getContext('2d');
+      const w = canvas.clientWidth || 300;
+      const h = canvas.clientHeight || 200;
+      canvas.width = w * window.devicePixelRatio;
+      canvas.height = h * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Home plate location at bottom center
+      const homeX = w / 2;
+      const homeY = h - 20;
+      const fieldRadius = h - 35;
+
+      // Draw outfield grass arc
+      ctx.beginPath();
+      ctx.arc(homeX, homeY, fieldRadius, -Math.PI * 0.8, -Math.PI * 0.2, false);
+      ctx.lineTo(homeX, homeY);
+      ctx.closePath();
+      ctx.fillStyle = '#0f172a';
+      ctx.fill();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Draw foul lines
+      const leftFoulX = homeX + fieldRadius * Math.cos(-Math.PI * 0.75);
+      const leftFoulY = homeY + fieldRadius * Math.sin(-Math.PI * 0.75);
+      const rightFoulX = homeX + fieldRadius * Math.cos(-Math.PI * 0.25);
+      const rightFoulY = homeY + fieldRadius * Math.sin(-Math.PI * 0.25);
+
+      ctx.beginPath();
+      ctx.moveTo(homeX, homeY);
+      ctx.lineTo(leftFoulX, leftFoulY);
+      ctx.moveTo(homeX, homeY);
+      ctx.lineTo(rightFoulX, rightFoulY);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Draw infield diamond
+      const baseDist = fieldRadius * 0.35;
+      const secondX = homeX;
+      const secondY = homeY - baseDist * 1.414;
+      const firstX = homeX + baseDist;
+      const firstY = homeY - baseDist;
+      const thirdX = homeX - baseDist;
+      const thirdY = homeY - baseDist;
+
+      ctx.beginPath();
+      ctx.moveTo(homeX, homeY);
+      ctx.lineTo(firstX, firstY);
+      ctx.lineTo(secondX, secondY);
+      ctx.lineTo(thirdX, thirdY);
+      ctx.closePath();
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+
+      // Filter in play pitches
+      const inPlay = pitches.filter(p => {
+        const res = String(p.PitchCall || p.PlayResult || '').toLowerCase();
+        return res.includes('inplay') || res.includes('in play') || p.ExitSpeed > 0;
+      });
+
+      if (inPlay.length === 0) {
+        if (noMsg) noMsg.classList.remove('hidden');
+        return;
+      } else {
+        if (noMsg) noMsg.classList.add('hidden');
+      }
+
+      // Plot contact points based on bearing/distance or launch angle
+      inPlay.forEach((p, idx) => {
+        const exitV = parseFloat(p.ExitSpeed || 85 + (idx % 15));
+        const angle = parseFloat(p.Bearing || (Math.sin(idx * 2) * 35)); // -45 deg (LF) to +45 deg (RF)
+        const distRatio = Math.min(Math.max((exitV - 50) / 60, 0.2), 0.95);
+
+        // Convert angle to canvas polar coords
+        const rad = (-90 + angle) * (Math.PI / 180);
+        const ptX = homeX + (fieldRadius * distRatio) * Math.cos(rad);
+        const ptY = homeY + (fieldRadius * distRatio) * Math.sin(rad);
+
+        ctx.beginPath();
+        ctx.arc(ptX, ptY, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = exitV >= 95 ? '#f43f5e' : '#38bdf8';
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      });
+    }
+<!-- ... existing code ... -->
