@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+html_content = """<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
@@ -21,7 +21,6 @@
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
     .sort-icon.active { color: #38bdf8; }
     
-    /* Premium UI Enhancements */
     .glass-card {
       background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(7, 11, 20, 0.95) 100%);
       backdrop-filter: blur(10px);
@@ -37,7 +36,6 @@
 </head>
 <body class="bg-gradient-to-br from-[#050914] to-[#0a101d] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30">
 
-  <!-- TOP HEADER -->
   <header class="border-b border-slate-800/80 bg-[#070b14]/80 backdrop-blur-md sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
     <div class="max-w-[95%] mx-auto px-4 h-16 flex items-center justify-between">
       <div class="flex items-center gap-3 cursor-pointer group" onclick="setListView()">
@@ -73,7 +71,6 @@
     </div>
   </header>
 
-  <!-- MAIN VIEWPORT -->
   <main class="flex-1 max-w-[95%] w-full mx-auto p-4 space-y-6">
 
     <!-- VIEW: ROSTER LIST -->
@@ -279,6 +276,24 @@
           </div>
         </div>
       </div>
+      
+      <!-- ROW 4: TUNNELING & ARM ANGLE (NEW) -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col mt-5">
+        <div class="flex flex-col md:flex-row md:justify-between md:items-center mb-4 gap-4">
+          <div>
+            <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-person-running text-sky-400"></i> Tunneling & Arm Angle</h3>
+            <p class="text-[10px] text-slate-400 font-mono mt-1">Average release points by pitch type mapped dynamically from the shoulder.</p>
+          </div>
+          <div class="flex gap-1 text-[10px] font-mono bg-black/40 p-1 rounded-lg border border-slate-700/50 shadow-inner">
+            <button onclick="setBiomechView('rear')" id="biomech-btn-rear" class="px-3 py-1.5 rounded bg-sky-500 text-white font-bold transition shadow-sm">Rear View (Angle)</button>
+            <button onclick="setBiomechView('side')" id="biomech-btn-side" class="px-3 py-1.5 rounded text-slate-400 hover:text-white transition">Side View (Extension)</button>
+          </div>
+        </div>
+        <div class="relative w-full aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1] bg-[#070b14] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)] overflow-hidden">
+          <canvas id="biomechanicsCanvas" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+
     </div>
 
     <!-- VIEW: LEADERBOARD -->
@@ -297,27 +312,13 @@
           <table class="w-full text-left text-sm font-mono">
             <thead class="uppercase text-slate-300 bg-black/60 border-b border-slate-700/50 select-none text-xs font-black tracking-widest">
               <tr>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('name')">
-                  Pitcher <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-name"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('hand')">
-                  Throws <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-hand"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('total')">
-                  Pitches <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-total"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-sky-400" onclick="sortLeaderboard('fbVelo')">
-                  Max Velo <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-fbVelo"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('strikePct')">
-                  Strike % <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-strikePct"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-amber-400" onclick="sortLeaderboard('whiffPct')">
-                  Whiff % <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-whiffPct"></i>
-                </th>
-                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('kbb')">
-                  K:BB <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-kbb"></i>
-                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('name')">Pitcher <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-name"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('hand')">Throws <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-hand"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('total')">Pitches <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-total"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-sky-400" onclick="sortLeaderboard('fbVelo')">Max Velo <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-fbVelo"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('strikePct')">Strike % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-strikePct"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-amber-400" onclick="sortLeaderboard('whiffPct')">Whiff % <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-whiffPct"></i></th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('kbb')">K:BB <i class="fa-solid fa-sort ml-1.5 sort-icon" id="sort-icon-kbb"></i></th>
                 <th class="py-4 px-5 text-right">Profile</th>
               </tr>
             </thead>
@@ -346,7 +347,7 @@
       <div class="mt-4 flex items-center justify-between bg-black/40 p-4 rounded-xl border border-slate-700/50 shadow-inner">
         <div>
           <div class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-filter text-emerald-400"></i> Southeastern Mode</div>
-          <div class="text-[10px] text-slate-400 mt-1 leading-tight">Only imports pitchers tagged<br>as Southeastern or SLU.</div>
+          <div class="text-[10px] text-slate-400 mt-1 leading-tight">Imports pitchers tagged<br>Southeastern, SLU, or SOU_LIO.</div>
         </div>
         <label class="relative inline-flex items-center cursor-pointer">
           <input type="checkbox" id="selModeToggle" class="sr-only peer" checked>
@@ -372,10 +373,13 @@
       leaderboardSort: { key: 'strikePct', asc: false }
     };
     window.AppState = AppState;
+    window.biomechView = 'rear'; // New global for arm angle view
     
     const PITCH_COLORS = { 'Four-Seam': '#ef4444', 'Sinker': '#f97316', 'Cutter': '#eab308', 'Slider': '#06b6d4', 'Sweeper': '#3b82f6', 'Curveball': '#8b5cf6', 'Changeup': '#10b981', 'Splitter': '#ec4899', 'Other': '#94a3b8' };
     
-    // Set global Chart.js pro styling
+    // Pitch abbreviations for the Arm Angle Chart
+    const PITCH_ABBR = { 'Four-Seam': 'FB', 'Sinker': 'SI', 'Cutter': 'CT', 'Slider': 'SL', 'Sweeper': 'ST', 'Curveball': 'CB', 'Changeup': 'CH', 'Splitter': 'SPL', 'Other': 'XX' };
+
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.font.family = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
@@ -392,7 +396,6 @@
       loadSampleData();
     };
 
-    // Make functions global so they can be called by UI and Firebase scripts
     window.processPitchesData = function() {
       AppState.pitchers = {};
       AppState.allPitches.forEach(p => {
@@ -405,9 +408,7 @@
         AppState.pitchers[name].outings[date].push(p);
       });
       const pitchCountEl = document.getElementById('global-pitch-count');
-      if(pitchCountEl) {
-        pitchCountEl.textContent = AppState.allPitches.length.toLocaleString() + ' Pitches Database';
-      }
+      if(pitchCountEl) pitchCountEl.textContent = AppState.allPitches.length.toLocaleString() + ' Pitches Database';
     };
 
     window.setListView = function() { 
@@ -455,8 +456,7 @@
     function computeMetrics(pitches) {
       if(!pitches || !pitches.length) return {total:0,strikePct:'0.0',whiffPct:'0.0',fpsPct:'0.0',oneOneWinPct:'0.0',fourLessPct:'0.0',gbPct:'0.0',kbb:'0.00',fbVelo:'0.0'};
       let strikes=0, swings=0, whiffs=0, fpsCount=0, fpsWin=0, oneOneCount=0, oneOneWin=0, gb=0, inPlay=0, k=0, bb=0;
-      let fbVelos=[];
-      let paMap = {};
+      let fbVelos=[]; let paMap = {};
 
       pitches.forEach(p => {
         if(isStrikeEvent(p)) strikes++;
@@ -507,10 +507,17 @@
       document.getElementById('view-roster').classList.add('hidden'); 
       document.getElementById('view-pitcher').classList.remove('hidden'); 
       document.getElementById('view-master').classList.add('hidden'); 
-      updateDropdowns(); 
-      updateFilterButtons();
-      renderProfile(); 
+      updateDropdowns(); updateFilterButtons(); renderProfile(); 
     }
+
+    window.setBiomechView = function(v) {
+      window.biomechView = v;
+      const s = 'px-3 py-1.5 rounded bg-sky-500 text-white font-bold transition shadow-sm';
+      const us = 'px-3 py-1.5 rounded text-slate-400 hover:text-white transition';
+      document.getElementById('biomech-btn-rear').className = v==='rear' ? s : us;
+      document.getElementById('biomech-btn-side').className = v==='side' ? s : us;
+      renderBiomechanics();
+    };
 
     function getActivePitches() {
       const po = AppState.pitchers[AppState.currentPitcher];
@@ -717,7 +724,178 @@
       renderSprayChart();
       renderMovementChart();
       renderSeparationChart();
+      renderBiomechanics();
     }
+
+    // --- NEW: TUNNELING & ARM ANGLE VISUALIZER ---
+    function renderBiomechanics() {
+      const c = document.getElementById('biomechanicsCanvas');
+      if(!c) return;
+      const ctx = c.getContext('2d');
+      // Set resolution higher for crisp lines on retina screens
+      const w = c.clientWidth, h = c.clientHeight;
+      c.width = w * 2; c.height = h * 2; ctx.scale(2, 2);
+      ctx.clearRect(0, 0, w, h);
+
+      const view = window.biomechView || 'rear';
+      const po = AppState.pitchers[AppState.currentPitcher];
+      const isLHP = po.hand === 'LHP';
+      const pitches = getActivePitches();
+
+      // Get averages per pitch type
+      const ars = {};
+      let totalX = 0, totalZ = 0, totalExt = 0, validPitches = 0;
+
+      pitches.forEach(p => {
+        const t = getPitchType(p);
+        // TrackMan columns are typically RelSide, RelHeight, Extension. Fallbacks included just in case.
+        const x = parseFloat(p.RelSide || p.ReleaseSide || 0); 
+        const z = parseFloat(p.RelHeight || p.ReleaseHeight || 0);
+        const ext = parseFloat(p.Extension || p.RelExtension || 0);
+        
+        if(!isNaN(x) && !isNaN(z) && !isNaN(ext) && z > 0) {
+          if(!ars[t]) ars[t] = { x:0, z:0, ext:0, c:0 };
+          ars[t].x += x; ars[t].z += z; ars[t].ext += ext; ars[t].c++;
+          totalX += x; totalZ += z; totalExt += ext; validPitches++;
+        }
+      });
+
+      if (validPitches === 0) {
+        ctx.fillStyle = '#64748b'; ctx.font = '12px monospace'; ctx.textAlign = 'center';
+        ctx.fillText('NO RELEASE DATA AVAILABLE', w/2, h/2);
+        return;
+      }
+
+      // Calculate global averages to dynamically place the pitcher's body/shoulder
+      const globalAvgX = totalX / validPitches;
+      const globalAvgZ = totalZ / validPitches;
+      const globalAvgExt = totalExt / validPitches;
+
+      Object.keys(ars).forEach(t => {
+        ars[t].x /= ars[t].c;
+        ars[t].z /= ars[t].c;
+        ars[t].ext /= ars[t].c;
+      });
+
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      ctx.font = 'bold 10px monospace';
+
+      if(view === 'rear') {
+        // MAP X: -4 to 4 ft | MAP Z: 0 to 8 ft
+        const cx = x => ((x + 4.5) / 9.0) * w;
+        const cy = z => h - (z / 8.0 * h);
+
+        // Grid
+        ctx.textAlign = 'center';
+        for(let i=-4; i<=4; i++) { 
+          ctx.beginPath(); ctx.moveTo(cx(i),0); ctx.lineTo(cx(i),h); ctx.stroke(); 
+          if(i !== 0) ctx.fillText(i > 0 ? `+${i}ft` : `${i}ft`, cx(i), h-8);
+        }
+        ctx.textAlign = 'left';
+        for(let i=1; i<=7; i++) { 
+          ctx.beginPath(); ctx.moveTo(0,cy(i)); ctx.lineTo(w,cy(i)); ctx.stroke(); 
+          ctx.fillText(`${i}ft`, 8, cy(i)-5);
+        }
+
+        // Determine dynamic shoulder position based on average release
+        // (Shoulder is lower than release height, and closer to the center of the rubber than release side)
+        const shoulderX = isLHP ? Math.min(globalAvgX - 0.75, 2.5) : Math.max(globalAvgX + 0.75, -2.5);
+        const shoulderZ = globalAvgZ - 0.7; 
+        const pxS = cx(shoulderX), pyS = cy(shoulderZ);
+
+        // Draw Stylized Silhouette background
+        ctx.beginPath();
+        ctx.moveTo(cx(isLHP ? 0.5 : -0.5), cy(shoulderZ + 0.2)); // neck
+        ctx.lineTo(pxS, pyS); // throwing shoulder
+        ctx.lineTo(cx(isLHP ? 1.5 : -1.5), cy(3.0)); // throwing hip
+        ctx.lineTo(cx(isLHP ? -0.5 : 0.5), cy(3.0)); // front hip
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.stroke();
+        
+        // Head
+        ctx.beginPath(); ctx.arc(cx(isLHP ? 0.2 : -0.2), cy(shoulderZ + 0.6), 18, 0, Math.PI*2);
+        ctx.fill(); ctx.stroke();
+
+        // Draw Arm Lines
+        Object.keys(ars).forEach(t => {
+          const pt = ars[t];
+          const pxE = cx(pt.x), pyE = cy(pt.z);
+          const color = PITCH_COLORS[t] || '#fff';
+
+          // Arm Line (Shoulder -> Ball)
+          ctx.beginPath(); ctx.moveTo(pxS, pyS); ctx.lineTo(pxE, pyE);
+          ctx.strokeStyle = color; ctx.lineWidth = 3.5; 
+          ctx.shadowColor = color; ctx.shadowBlur = 12;
+          ctx.stroke(); ctx.shadowBlur = 0;
+
+          // Ball
+          ctx.beginPath(); ctx.arc(pxE, pyE, 5, 0, Math.PI*2);
+          ctx.fillStyle = color; ctx.fill();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+
+          // Label
+          ctx.fillStyle = '#fff'; ctx.textAlign = isLHP ? 'left' : 'right';
+          ctx.fillText(PITCH_ABBR[t] || t, isLHP ? pxE + 10 : pxE - 10, pyE + 4);
+        });
+
+      } else {
+        // SIDE VIEW MAP: Ext: 3 to 8 ft | Z: 0 to 8 ft
+        const minE = 2.5, maxE = 8.5;
+        const cx = ext => ((ext - minE) / (maxE - minE)) * w;
+        const cy = z => h - (z / 8.0 * h);
+
+        ctx.textAlign = 'center';
+        for(let i=3; i<=8; i++) { 
+          ctx.beginPath(); ctx.moveTo(cx(i),0); ctx.lineTo(cx(i),h); ctx.stroke(); 
+          ctx.fillText(`${i}ft Ext`, cx(i), h-8);
+        }
+        ctx.textAlign = 'left';
+        for(let i=1; i<=7; i++) { 
+          ctx.beginPath(); ctx.moveTo(0,cy(i)); ctx.lineTo(w,cy(i)); ctx.stroke(); 
+          ctx.fillText(`${i}ft`, 8, cy(i)-5);
+        }
+
+        // Determine Side-View Shoulder
+        const shoulderExt = Math.max(globalAvgExt - 2.2, minE + 0.5); 
+        const shoulderZ = globalAvgZ - 0.7;
+        const pxS = cx(shoulderExt), pyS = cy(shoulderZ);
+
+        // Draw Stylized Torso Profile
+        ctx.beginPath();
+        ctx.moveTo(cx(shoulderExt - 0.5), cy(shoulderZ + 0.2)); // neck back
+        ctx.lineTo(pxS, pyS); // shoulder joint
+        ctx.lineTo(cx(shoulderExt - 1.0), cy(3.0)); // back hip
+        ctx.lineTo(cx(shoulderExt - 0.2), cy(3.0)); // front hip
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(255,255,255,0.03)'; ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.1)'; ctx.stroke();
+
+        Object.keys(ars).forEach(t => {
+          const pt = ars[t];
+          const pxE = cx(pt.ext), pyE = cy(pt.z);
+          const color = PITCH_COLORS[t] || '#fff';
+
+          // Arm Line (Shoulder -> Ball)
+          ctx.beginPath(); ctx.moveTo(pxS, pyS); ctx.lineTo(pxE, pyE);
+          ctx.strokeStyle = color; ctx.lineWidth = 3.5; 
+          ctx.shadowColor = color; ctx.shadowBlur = 12;
+          ctx.stroke(); ctx.shadowBlur = 0;
+
+          // Ball
+          ctx.beginPath(); ctx.arc(pxE, pyE, 5, 0, Math.PI*2);
+          ctx.fillStyle = color; ctx.fill();
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+
+          // Label
+          ctx.fillStyle = '#fff'; ctx.textAlign = 'left';
+          ctx.fillText(PITCH_ABBR[t] || t, pxE + 10, pyE + 4);
+        });
+      }
+    }
+
 
     function drawStrikeZonePlot() {
       const c = document.getElementById('strikeZoneCanvas');
@@ -729,13 +907,11 @@
 
       const cx=x=>((x+2.5)/5.0)*w, cy=y=>h-((y/5.0)*h);
       
-      // --- Draw Pro Axes & Grid ---
       ctx.strokeStyle = 'rgba(255,255,255,0.08)';
       ctx.lineWidth = 1;
       ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
       ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
       
-      // Vertical grid (Sides: -2 to 2 ft)
       ctx.textAlign = 'center';
       for(let x = -2; x <= 2; x+=1) {
         const px = cx(x);
@@ -744,7 +920,6 @@
         else ctx.fillText('0', px, h - 8);
       }
       
-      // Horizontal grid (Height: 1 to 5 ft)
       ctx.textAlign = 'left';
       for(let y = 1; y <= 5; y+=1) {
         const py = cy(y);
@@ -752,13 +927,11 @@
         ctx.fillText(y, 8, py - 5);
       }
 
-      // Ground plane
       const gradG = ctx.createLinearGradient(0, cy(0), 0, h);
       gradG.addColorStop(0, 'rgba(255,255,255,0.05)');
       gradG.addColorStop(1, 'transparent');
       ctx.fillStyle = gradG; ctx.fillRect(0, cy(0.1), w, h);
 
-      // Home Plate
       ctx.beginPath();
       ctx.moveTo(cx(-0.71), cy(0.1)); 
       ctx.lineTo(cx(0.71), cy(0.1));
@@ -769,13 +942,11 @@
       ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fill();
       ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
 
-      // Zone Box with Glow
       ctx.fillStyle='rgba(15,23,42,0.6)'; ctx.fillRect(cx(-0.83), cy(3.5), cx(0.83)-cx(-0.83), cy(1.5)-cy(3.5));
       ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 10;
       ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2; ctx.strokeRect(cx(-0.83), cy(3.5), cx(0.83)-cx(-0.83), cy(1.5)-cy(3.5));
-      ctx.shadowBlur = 0; // reset
+      ctx.shadowBlur = 0;
       
-      // Shadow Buffer
       ctx.setLineDash([4, 4]); ctx.strokeStyle='rgba(148, 163, 184, 0.4)'; ctx.lineWidth=1;
       ctx.strokeRect(cx(-1.11), cy(3.83), cx(1.11)-cx(-1.11), cy(1.16)-cy(3.83));
       ctx.setLineDash([]);
@@ -795,7 +966,6 @@
           ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.strokeStyle='#fcd34d'; ctx.lineWidth=1.5; ctx.stroke(); 
         }
         
-        // Pitch Dot (Glowing sphere)
         ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); 
         const pg = ctx.createRadialGradient(px-1,py-1,0,px,py,4.5);
         pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.3, color); pg.addColorStop(1, '#000000');
@@ -816,25 +986,21 @@
       
       const homeX = w/2, homeY = h-15;
       
-      // Outfield Grass pattern
       ctx.fillStyle = '#14231b'; ctx.fillRect(0,0,w,h);
       ctx.beginPath(); ctx.arc(homeX, homeY, h-20, Math.PI, 0); ctx.fillStyle='#182d22'; ctx.fill();
       
-      // Infield Dirt Cutout
       ctx.beginPath(); ctx.arc(homeX, homeY-65, 55, 0, Math.PI*2); ctx.fillStyle='rgba(163, 110, 68, 0.2)'; ctx.fill();
       
-      // Foul Lines
       ctx.beginPath(); ctx.moveTo(homeX, homeY); ctx.lineTo(homeX - (h-20), homeY - (h-20));
       ctx.moveTo(homeX, homeY); ctx.lineTo(homeX + (h-20), homeY - (h-20));
       ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
       
-      // Bases
       ctx.fillStyle='rgba(255,255,255,0.8)';
       const drawBase = (x,y) => { ctx.beginPath(); ctx.moveTo(x,y+3); ctx.lineTo(x-3,y); ctx.lineTo(x,y-3); ctx.lineTo(x+3,y); ctx.closePath(); ctx.fill(); }
-      drawBase(homeX, homeY); // home
-      drawBase(homeX, homeY-130); // second
-      drawBase(homeX-65, homeY-65); // third
-      drawBase(homeX+65, homeY-65); // first
+      drawBase(homeX, homeY); 
+      drawBase(homeX, homeY-130); 
+      drawBase(homeX-65, homeY-65); 
+      drawBase(homeX+65, homeY-65); 
       
       getActivePitches().forEach(p => {
         const ev = parseFloat(p.ExitSpeed||0), ang = parseFloat(p.Angle||0);
@@ -861,20 +1027,13 @@
         if(!isNaN(hb)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:hb,y:ivb}); }
       });
       
-      const zeroGrid = {
-        color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)',
-        lineWidth: c => c.tick.value === 0 ? 2.5 : 1,
-        drawBorder: false
-      };
+      const zeroGrid = { color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)', lineWidth: c => c.tick.value === 0 ? 2.5 : 1, drawBorder: false };
       
       AppState.charts.movement = new Chart(document.getElementById('movementChartCanvas'), {
         type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
         options: { 
           responsive:true, maintainAspectRatio:false, 
-          plugins:{
-            legend:{display:false},
-            tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 }
-          }, 
+          plugins:{ legend:{display:false}, tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 } }, 
           scales:{ x:{min:-25,max:25,grid:zeroGrid, border:{dash:[4,4]}, title:{display:true,text:'Horizontal Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}}, 
                    y:{min:-25,max:25,grid:zeroGrid, border:{dash:[4,4]}, title:{display:true,text:'Induced Vertical Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}} } 
         }
@@ -889,27 +1048,19 @@
         if(!isNaN(v)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:v,y:ivb}); }
       });
       
-      const zeroGrid = {
-        color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)',
-        lineWidth: c => c.tick.value === 0 ? 2.5 : 1,
-        drawBorder: false
-      };
+      const zeroGrid = { color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)', lineWidth: c => c.tick.value === 0 ? 2.5 : 1, drawBorder: false };
       
       AppState.charts.separation = new Chart(document.getElementById('pitchSepCanvas'), {
         type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
         options: { 
           responsive:true, maintainAspectRatio:false, 
-          plugins:{
-            legend:{display:false},
-            tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 }
-          }, 
+          plugins:{ legend:{display:false}, tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 } }, 
           scales:{ x:{grid:{color: 'rgba(51, 65, 85, 0.3)', drawBorder: false}, border:{display:false}, title:{display:true,text:'Velocity (mph)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}}, 
                    y:{grid:zeroGrid, border:{display:false}, title:{display:true,text:'Induced Vertical Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}} } 
         }
       });
     }
 
-    // Leaderboard Logic
     function sortLeaderboard(key) {
       if(AppState.leaderboardSort.key === key) AppState.leaderboardSort.asc = !AppState.leaderboardSort.asc;
       else { AppState.leaderboardSort.key = key; AppState.leaderboardSort.asc = (key==='name'||key==='hand'); }
@@ -958,23 +1109,21 @@
     function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
     function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
     
-    // Updated File Select: Handles Appending and SE Mode
     window.handleFileSelect = function(e) { 
       if(e.target.files.length) {
         Papa.parse(e.target.files[0], { 
           header:true, skipEmptyLines: true,
           complete: r => { 
-            let newPitches = r.data.filter(p => p.Pitcher && p.Pitcher.trim() !== ''); // Filter blank rows
+            let newPitches = r.data.filter(p => p.Pitcher && p.Pitcher.trim() !== '');
             
             const selMode = document.getElementById('selModeToggle') && document.getElementById('selModeToggle').checked;
             if (selMode) {
               newPitches = newPitches.filter(p => {
                 const team = (p.PitcherTeam || p.Team || '').toLowerCase();
-                return team.includes('SOU_LIO') || team.includes('slu');
+                return team.includes('sou_lio') || team.includes('southeastern') || team.includes('slu');
               });
             }
             
-            // Append data instead of overwrite
             AppState.allPitches = [...AppState.allPitches, ...newPitches]; 
             localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches)); 
             window.processPitchesData(); 
@@ -982,12 +1131,10 @@
             window.setListView(); 
           }
         }); 
-        // Reset file input so you can re-upload same file if needed
         e.target.value = '';
       }
     };
     
-    // New Feature: Delete Current Pitcher
     window.deleteCurrentPitcher = function() {
       const name = AppState.currentPitcher;
       if(!name) return;
@@ -999,11 +1146,10 @@
       }
     };
 
-    // New Feature: Clear All App Data
     window.clearAllData = function() {
       if(confirm("Are you sure you want to wipe ALL pitches from the app? This cannot be undone.")) {
         AppState.allPitches = [];
-        localStorage.setItem('franilitics_pitches', '[]'); // Use '[]' so loadSampleData isn't triggered
+        localStorage.setItem('franilitics_pitches', '[]'); 
         window.processPitchesData();
         window.closeUploadModal();
         window.setListView();
@@ -1023,23 +1169,28 @@
         for(let i=0;i<120;i++){
           const rand = Math.random();
           let type = 'Four-Seam', velo = pt.fbV, ivb = 16, hb = pt.h==='RHP'? 8 : -8, spin = 2350, side = (Math.random()-0.5)*2.5, ht = 1.5+Math.random()*2.5;
-          
+          let relSide = pt.h==='RHP' ? -1.8 + (Math.random()-0.5)*0.3 : 1.8 + (Math.random()-0.5)*0.3;
+          let ext = 6.2 + (Math.random()-0.5)*0.4;
+          let relHt = 5.8 + (Math.random()-0.5)*0.2;
+
           if(rand > 0.5 && rand <= 0.8) { 
             type = 'Slider'; velo = pt.slV; ivb = 2; hb = pt.h==='RHP'? -8 : 8; spin = 2600; 
             side = pt.h==='RHP' ? (Math.random()*1.5) : (-Math.random()*1.5); ht = 0.5+Math.random()*2.0; 
+            relSide += pt.h==='RHP' ? -0.2 : 0.2; relHt -= 0.1; ext -= 0.1;
           } else if(rand > 0.8 && rand <= 0.95) { 
             type = 'Changeup'; velo = pt.chV; ivb = 6; hb = pt.h==='RHP'? 14 : -14; spin = 1800; 
             side = pt.h==='RHP' ? (-0.5-Math.random()) : (0.5+Math.random()); ht = 1.0+Math.random()*1.5; 
+            relSide += pt.h==='RHP' ? 0.2 : -0.2; ext -= 0.2;
           } else if(rand > 0.95) { 
             type = 'Curveball'; velo = pt.cbV; ivb = -8; hb = pt.h==='RHP'? -6 : 6; spin = 2800; 
             ht = 0.0+Math.random()*1.5; 
+            relHt += 0.2; ext -= 0.3;
           }
 
           velo += (Math.random()-0.5)*2.5;
           ivb += (Math.random()-0.5)*3;
           hb += (Math.random()-0.5)*3;
           spin += (Math.random()-0.5)*150;
-          const relHt = 5.8 + (Math.random()-0.5)*0.2;
           
           let call = 'BallCalled'; let exit = 0; let ang = 0;
           const x = Math.abs(side), z = ht;
@@ -1059,6 +1210,7 @@
             Pitcher:pt.n, PitcherThrows:pt.h, Date:'2026-03-24', AutoPitchType:type, 
             RelSpeed:velo, InducedVertBreak:ivb, HorzBreak:hb, SpinRate:spin, 
             PlateLocSide:side, PlateLocHeight:ht, PitchCall:call, RelHeight:relHt,
+            RelSide:relSide, Extension:ext, 
             ExitSpeed:exit, Angle:ang, Balls: Math.floor(Math.random()*4), Strikes: Math.floor(Math.random()*3)
           });
         }
@@ -1073,11 +1225,9 @@
 
   <!-- FIREBASE CLOUD SYNC MODULE -->
   <script type="module">
-    // 1. Load Firebase modules via CDN (no Node or npm required)
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    // 2. Your project configuration
     const firebaseConfig = {
       apiKey: "AIzaSy...", 
       authDomain: "pitcher-reports.firebaseapp.com",
@@ -1087,18 +1237,15 @@
       appId: "1:1234567890:web:abcdef..."
     };
 
-    // 3. Initialize Firebase & Firestore
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    // Update the UI immediately to reflect we are connected
     const statusEl = document.getElementById('cloud-status');
     if(statusEl) {
       statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Connected';
       statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
     }
 
-    // 4. Save to Cloud & Generate Share Link
     window.saveToFraniliticsCloud = async function(sessionPayload) {
       if (firebaseConfig.apiKey.includes("AIzaSy...")) {
         alert("Action required: You need to paste your real Firebase apiKey in the HTML file before you can share!");
@@ -1118,7 +1265,7 @@
         const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
         await navigator.clipboard.writeText(shareUrl);
         statusEl.innerHTML = origText;
-        alert("Report saved to cloud! Share link copied:\n" + shareUrl);
+        alert("Report saved to cloud! Share link copied:\\n" + shareUrl);
 
       } catch (err) {
         console.error("Cloud save failed:", err);
@@ -1127,7 +1274,6 @@
       }
     };
 
-    // 5. Automatically load from Cloud when a link is opened
     async function loadFraniliticsReportFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const reportId = params.get("report");
@@ -1141,13 +1287,9 @@
 
         if (docSnap.exists()) {
           const cloudData = docSnap.data().data;
-          console.log("Franilitics data retrieved from cloud");
-
-          // Wire directly into your AppState
           window.AppState.allPitches = cloudData;
           window.processPitchesData();
           window.setListView();
-          
           statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Synced';
         } else {
           alert("This report could not be found or the link is invalid.");
@@ -1163,7 +1305,6 @@
   </script>
 
   <script>
-    // 6. Connect the new UI Share Button to the Firebase script
     window.triggerCloudShare = function() {
       if (!window.AppState || window.AppState.allPitches.length === 0) {
         alert("No data to share! Please upload a TrackMan CSV first.");
@@ -1175,4 +1316,9 @@
     };
   </script>
 </body>
-</html>
+</html>"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("File generated successfully.")
