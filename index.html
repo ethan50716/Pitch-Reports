@@ -386,6 +386,14 @@
     Chart.defaults.font.family = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
     window.onload = function() {
+      // FIX: Check if we are loading a shared cloud report
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("report")) {
+        // If there is a report ID in the URL, do NOT load local storage or sample data.
+        // Let the Firebase DOMContentLoaded script handle injecting the real data.
+        return; 
+      }
+
       const stored = localStorage.getItem('franilitics_pitches');
       if (stored) { 
         try { 
@@ -729,6 +737,7 @@
       renderBiomechanics();
     }
 
+    // --- REFINED: TUNNELING & ARM ANGLE VISUALIZER ---
     function renderBiomechanics() {
       const c = document.getElementById('biomechanicsCanvas');
       if(!c) return;
