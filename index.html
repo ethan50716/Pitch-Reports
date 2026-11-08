@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <!-- ADDED COMPRESSION LIBRARY -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -727,7 +729,6 @@
       renderBiomechanics();
     }
 
-    // --- REFINED: TUNNELING & ARM ANGLE VISUALIZER ---
     function renderBiomechanics() {
       const c = document.getElementById('biomechanicsCanvas');
       if(!c) return;
@@ -1020,7 +1021,6 @@
     function renderSeparationChart() {
       if(AppState.charts.separation) AppState.charts.separation.destroy();
       const ds = {};
-      // ONLY Fastballs (Four-Seam, Sinker) and Splitters/Changeups
       const allowed = ['Four-Seam', 'Sinker', 'Changeup', 'Splitter'];
       
       getActivePitches().forEach(p=>{
@@ -1229,14 +1229,19 @@
       statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
     }
 
+    // UPDATED COMPRESSION LOGIC
     window.saveToFraniliticsCloud = async function(sessionPayload) {
       try {
         const sessionId = Math.random().toString(36).substring(2, 9);
         const origText = statusEl.innerHTML;
         statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
 
+        // Compress the raw pitch data to bypass the 1MB Firestore limit
+        const jsonString = JSON.stringify(sessionPayload);
+        const compressedData = LZString.compressToUTF16(jsonString);
+
         await setDoc(doc(db, "pitch_reports", sessionId), {
-          data: sessionPayload,
+          data_compressed: compressedData, // Use the compressed string
           appName: "Franilitics",
           createdAt: new Date().toISOString()
         });
@@ -1265,8 +1270,17 @@
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          const cloudData = docSnap.data().data;
-          window.AppState.allPitches = cloudData;
+          const cloudData = docSnap.data();
+          
+          let finalData;
+          // Check if data is compressed or legacy uncompressed
+          if (cloudData.data_compressed) {
+            finalData = JSON.parse(LZString.decompressFromUTF16(cloudData.data_compressed));
+          } else {
+            finalData = cloudData.data;
+          }
+
+          window.AppState.allPitches = finalData;
           window.processPitchesData();
           window.setListView();
           statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Synced';
