@@ -406,32 +406,39 @@
       if (elDesktop) { elDesktop.innerHTML = iconHtml; elDesktop.className = 'px-3 py-2 rounded-lg text-[10px] font-bold border hidden md:flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 shrink-0 ' + extraClasses; }
     }
 
-    // --- REFINED INIT SEQUENCE ---
-    // Instead of relying on multiple events racing, we define ONE master flow.
+    // --- BULLETPROOF INIT SEQUENCE ---
     window.initializeAppFlow = async function() {
       const params = new URLSearchParams(window.location.search);
       const reportId = params.get("report");
 
       if (reportId) {
         // Mode 1: Cloud Shared Report
-        if (window.loadFraniliticsReportFromUrl) {
-           await window.loadFraniliticsReportFromUrl(reportId);
-        } else {
-           // Fallback if script hasn't fully registered
-           setTimeout(() => { if (window.loadFraniliticsReportFromUrl) window.loadFraniliticsReportFromUrl(reportId); }, 300);
-        }
+        const checkAndLoad = () => {
+          if (window.loadFraniliticsReportFromUrl) {
+             window.loadFraniliticsReportFromUrl(reportId);
+          } else {
+             setTimeout(checkAndLoad, 100);
+          }
+        };
+        checkAndLoad();
       } else {
         // Mode 2: Local Data or Sample Data
         const stored = localStorage.getItem('franilitics_pitches');
         if (stored && stored !== '[]') { 
           try { 
             AppState.allPitches = JSON.parse(stored); 
-            processPitchesData(); 
-            setListView(); 
+            window.processPitchesData(); 
+            window.setListView(); 
             return; 
           } catch (e) { console.error("Error loading stored pitches", e); } 
         }
-        loadSampleData();
+        window.loadSampleData();
+      }
+    };
+
+    window.onload = function() {
+      if (window.initializeAppFlow) {
+        window.initializeAppFlow();
       }
     };
 
@@ -1179,8 +1186,7 @@
         const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
         await navigator.clipboard.writeText(shareUrl);
         updateStatusUI('<i class="fa-solid fa-cloud-check"></i> Connected', 'bg-emerald-500/20 text-emerald-400 border-emerald-500/50');
-        alert("Report saved to cloud! Share link copied:
-" + shareUrl);
+        alert("Report saved to cloud! Share link copied: " + shareUrl);
 
       } catch (err) {
         console.error("Cloud save failed:", err);
@@ -1220,8 +1226,6 @@
       }
     };
     
-    // Explicitly call the flow manager now that functions are defined
-    window.initializeAppFlow();
   </script>
 
   <script>
