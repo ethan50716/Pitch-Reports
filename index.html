@@ -48,7 +48,7 @@
           <div class="flex items-center gap-2">
             <span class="font-black text-lg tracking-wider text-white drop-shadow-md">FRANILITICS</span>
           </div>
-          <p class="text-[10px] text-sky-400/80 font-mono tracking-widest uppercase leading-none mt-1">Pitching Analytics</p>
+          <p class="text-[10px] text-sky-400/80 font-mono tracking-widest uppercase leading-none mt-1" id="global-pitch-count">0 Pitches Database</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -104,6 +104,9 @@
             <div class="flex items-center gap-3">
               <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md" id="pitcher-display-name">--</h2>
               <span id="pitcher-hand-badge" class="px-2.5 py-1 rounded-md text-xs font-black tracking-widest bg-slate-800 text-sky-400 border border-sky-900/50 shadow-sm">RHP</span>
+              <button onclick="deleteCurrentPitcher()" class="ml-2 w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white transition flex items-center justify-center border border-rose-500/30" title="Delete Pitcher Data">
+                <i class="fa-solid fa-trash-can text-sm"></i>
+              </button>
             </div>
             <div class="text-xs text-sky-200/60 font-mono mt-1.5 uppercase tracking-wider font-semibold" id="pitcher-total-pitches">-- Pitches Logged</div>
           </div>
@@ -332,11 +335,31 @@
         <h3 class="text-2xl font-black text-white flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-up text-sky-400 drop-shadow-md"></i> Upload CSV</h3>
         <button onclick="closeUploadModal()" class="text-slate-500 hover:text-white transition text-2xl">&times;</button>
       </div>
-      <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-600 hover:border-sky-500 bg-black/30 hover:bg-sky-900/20 rounded-2xl p-12 text-center cursor-pointer transition-all group shadow-inner">
+      
+      <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-600 hover:border-sky-500 bg-black/30 hover:bg-sky-900/20 rounded-2xl p-8 text-center cursor-pointer transition-all group shadow-inner">
         <i class="fa-solid fa-file-csv text-5xl text-slate-500 group-hover:text-sky-400 mb-4 transition-colors"></i>
         <div class="text-sm font-bold text-slate-300 group-hover:text-white">Click or drag TrackMan CSV here</div>
-        <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Supports Tagged & Auto Types</div>
+        <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Appends to current data</div>
         <input type="file" id="fileInput" accept=".csv" onchange="handleFileSelect(event)" class="hidden">
+      </div>
+
+      <div class="mt-4 flex items-center justify-between bg-black/40 p-4 rounded-xl border border-slate-700/50 shadow-inner">
+        <div>
+          <div class="text-white font-bold text-sm flex items-center gap-2"><i class="fa-solid fa-filter text-emerald-400"></i> Southeastern Mode</div>
+          <div class="text-[10px] text-slate-400 mt-1 leading-tight">Only imports pitchers tagged<br>as Southeastern or SLU.</div>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="selModeToggle" class="sr-only peer" checked>
+          <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500 shadow-inner border border-slate-600 peer-checked:border-emerald-400"></div>
+        </label>
+      </div>
+
+      <div class="mt-2 flex items-center justify-between bg-rose-950/20 p-4 rounded-xl border border-rose-900/30 shadow-inner">
+         <div>
+           <div class="text-white font-bold text-sm text-rose-400 flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation"></i> Clear App Data</div>
+           <div class="text-[10px] text-rose-500/70 mt-1">Wipes all stored pitches.</div>
+         </div>
+         <button onclick="clearAllData()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-black tracking-wider rounded-lg shadow-[0_0_10px_rgba(225,29,72,0.4)] border border-rose-500 transition">RESET</button>
       </div>
     </div>
   </div>
@@ -361,11 +384,9 @@
       if (stored) { 
         try { 
           AppState.allPitches = JSON.parse(stored); 
-          if (AppState.allPitches.length > 0) {
-            processPitchesData(); 
-            setListView(); 
-            return; 
-          }
+          processPitchesData(); 
+          setListView(); 
+          return; 
         } catch (e) { console.error("Error loading stored pitches", e); } 
       }
       loadSampleData();
@@ -383,6 +404,10 @@
         if (!AppState.pitchers[name].outings[date]) AppState.pitchers[name].outings[date] = [];
         AppState.pitchers[name].outings[date].push(p);
       });
+      const pitchCountEl = document.getElementById('global-pitch-count');
+      if(pitchCountEl) {
+        pitchCountEl.textContent = AppState.allPitches.length.toLocaleString() + ' Pitches Database';
+      }
     };
 
     window.setListView = function() { 
@@ -932,27 +957,66 @@
 
     function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
     function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
-    function handleFileSelect(e) { 
+    
+    // Updated File Select: Handles Appending and SE Mode
+    window.handleFileSelect = function(e) { 
       if(e.target.files.length) {
         Papa.parse(e.target.files[0], { 
           header:true, skipEmptyLines: true,
           complete: r => { 
-            AppState.allPitches=r.data; 
-            localStorage.setItem('franilitics_pitches', JSON.stringify(r.data)); 
-            processPitchesData(); 
+            let newPitches = r.data.filter(p => p.Pitcher && p.Pitcher.trim() !== ''); // Filter blank rows
+            
+            const selMode = document.getElementById('selModeToggle') && document.getElementById('selModeToggle').checked;
+            if (selMode) {
+              newPitches = newPitches.filter(p => {
+                const team = (p.PitcherTeam || p.Team || '').toLowerCase();
+                return team.includes('southeastern') || team.includes('slu');
+              });
+            }
+            
+            // Append data instead of overwrite
+            AppState.allPitches = [...AppState.allPitches, ...newPitches]; 
+            localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches)); 
+            window.processPitchesData(); 
             closeUploadModal(); 
-            setListView(); 
+            window.setListView(); 
           }
         }); 
+        // Reset file input so you can re-upload same file if needed
+        e.target.value = '';
       }
-    }
+    };
+    
+    // New Feature: Delete Current Pitcher
+    window.deleteCurrentPitcher = function() {
+      const name = AppState.currentPitcher;
+      if(!name) return;
+      if(confirm(`Are you sure you want to delete all data for ${name}? This cannot be undone.`)) {
+        AppState.allPitches = AppState.allPitches.filter(p => p.Pitcher !== name);
+        localStorage.setItem('franilitics_pitches', JSON.stringify(AppState.allPitches));
+        window.processPitchesData();
+        window.setListView();
+      }
+    };
+
+    // New Feature: Clear All App Data
+    window.clearAllData = function() {
+      if(confirm("Are you sure you want to wipe ALL pitches from the app? This cannot be undone.")) {
+        AppState.allPitches = [];
+        localStorage.setItem('franilitics_pitches', '[]'); // Use '[]' so loadSampleData isn't triggered
+        window.processPitchesData();
+        window.closeUploadModal();
+        window.setListView();
+      }
+    };
     
     function loadSampleData() {
       const p=[]; 
       const profiles = [
         {n:'Cole Parker', h:'RHP', fbV:94.5, slV:84, chV:86, cbV: 79},
         {n:'Marcus Vance', h:'LHP', fbV:91.2, slV:81, chV:83, cbV: 76},
-        {n:'Liam Bennett', h:'RHP', fbV:96.8, slV:87, chV:89, cbV: 82}
+        {n:'Liam Bennett', h:'RHP', fbV:96.8, slV:87, chV:89, cbV: 82},
+        {n:'Ian Hillary', h:'RHP', fbV:92.1, slV:83, chV:84, cbV: 75}
       ];
       
       profiles.forEach(pt => {
@@ -1001,9 +1065,9 @@
       });
       
       AppState.allPitches=p; 
-      processPitchesData(); 
+      window.processPitchesData(); 
       sortLeaderboard('strikePct');
-      setListView();
+      window.setListView();
     }
   </script>
 
