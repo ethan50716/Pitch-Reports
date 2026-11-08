@@ -809,6 +809,7 @@
       renderBiomechanics();
     }
 
+    // --- REFINED: TUNNELING & ARM ANGLE VISUALIZER ---
     function renderBiomechanics() {
       const c = document.getElementById('biomechanicsCanvas');
       if(!c) return;
@@ -850,7 +851,7 @@
         ctx.textAlign = 'center';
         for(let i=-3; i<=3; i++) { 
           ctx.beginPath(); ctx.moveTo(cx(i),0); ctx.lineTo(cx(i),h); ctx.stroke(); 
-          if(i !== 0) ctx.fillText(i > 0 ? `+${i}ft` : `${i}ft`, cx(i), h-8);
+          if(i !== 0) ctx.fillText(i > 0 ? `${i}ft R` : `${Math.abs(i)}ft L`, cx(i), h-8);
           else ctx.fillText(`0 (Center)`, cx(i), h-8);
         }
         ctx.textAlign = 'left';
@@ -859,15 +860,18 @@
           ctx.fillText(`${i}ft`, 8, cy(i)-5);
         }
 
+        // Spine & Head starting at x=0
         ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(cx(0), cy(2.5)); ctx.lineTo(cx(0), cy(4.8)); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx(-0.8), cy(4.8)); ctx.lineTo(cx(0.8), cy(4.8)); ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx(0), cy(5.4), 14, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(0), cy(2.5)); ctx.lineTo(cx(0), cy(5.0)); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx(0), cy(5.6), 14, 0, Math.PI*2); ctx.stroke();
 
-        const pxS = isLHP ? cx(-0.8) : cx(0.8), pyS = cy(4.8);
+        const pxS = cx(0), pyS = cy(5.0);
 
         Object.keys(ars).forEach(t => {
-          const pt = ars[t], pxE = cx(pt.x), pyE = cy(pt.z), color = PITCH_COLORS[t] || '#fff';
+          const pt = ars[t];
+          // For Rear View, to make negative RelSide (RHP) go right, we flip the sign (-pt.x)
+          const pxE = cx(-pt.x), pyE = cy(pt.z), color = PITCH_COLORS[t] || '#fff';
+          
           ctx.beginPath(); ctx.moveTo(pxS, pyS); ctx.lineTo(pxE, pyE);
           ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.shadowColor = color; ctx.shadowBlur = 8;
           ctx.stroke(); ctx.shadowBlur = 0;
@@ -893,12 +897,13 @@
           ctx.fillText(`${i}ft`, 8, cy(i)-5);
         }
 
+        // Side view wireframe starting at rubber (x=0)
         ctx.strokeStyle = 'rgba(255,255,255,0.15)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.moveTo(cx(0.5), cy(2.5)); ctx.lineTo(cx(1.5), cy(4.8)); ctx.stroke();
-        ctx.beginPath(); ctx.arc(cx(1.8), cy(5.4), 14, 0, Math.PI*2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(cx(1.8), cy(5.4)); ctx.lineTo(cx(2.4), cy(5.4)); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(0), cy(2.5)); ctx.lineTo(cx(0), cy(5.0)); ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx(0), cy(5.6), 14, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx(0), cy(5.6)); ctx.lineTo(cx(0.6), cy(5.6)); ctx.stroke(); // Cap bill
 
-        const pxS = cx(1.5), pyS = cy(4.8);
+        const pxS = cx(0), pyS = cy(5.0);
 
         Object.keys(ars).forEach(t => {
           const pt = ars[t], pxE = cx(pt.ext), pyE = cy(pt.z), color = PITCH_COLORS[t] || '#fff';
