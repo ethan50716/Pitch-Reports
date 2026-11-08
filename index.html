@@ -970,7 +970,7 @@
             if (selMode) {
               newPitches = newPitches.filter(p => {
                 const team = (p.PitcherTeam || p.Team || '').toLowerCase();
-                return team.includes('southeastern') || team.includes('slu');
+                return team.includes('SOU_LIO') || team.includes('slu');
               });
             }
             
