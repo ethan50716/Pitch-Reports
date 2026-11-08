@@ -1109,5 +1109,90 @@
       } catch(e) { console.error("Firebase init failed", e); }
     }
   </script>
+  <script type="module">
+  // 1. Load Firebase modules via CDN (no Node or npm required)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // 2. Your project configuration
+  // Replace apiKey, messagingSenderId, and appId with the values shown in your Firebase Console
+  const firebaseConfig = {
+    apiKey: "AIzaSy...", 
+    authDomain: "pitcher-reports.firebaseapp.com",
+    projectId: "pitcher-reports",
+    storageBucket: "pitcher-reports.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef..."
+  };
+
+  // 3. Initialize Firebase & Firestore
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // 4. Save to Cloud & Generate Share Link
+  // Call this when you want to save current pitch logs, TrackMan data, or reports
+  window.saveToFraniliticsCloud = async function(sessionPayload) {
+    try {
+      // Create a 7-character unique session key
+      const sessionId = Math.random().toString(36).substring(2, 9);
+
+      // Write document to the 'pitch_reports' collection
+      await setDoc(doc(db, "pitch_reports", sessionId), {
+        data: sessionPayload,
+        appName: "Franilitics",
+        createdAt: new Date().toISOString()
+      });
+
+      // Construct the shareable link with the ID
+      const shareUrl = `${window.location.origin}${window.location.pathname}?report=${sessionId}`;
+
+      // Copy straight to your clipboard
+      await navigator.clipboard.writeText(shareUrl);
+      alert("Report saved to cloud! Share link copied:\n" + shareUrl);
+
+      return shareUrl;
+    } catch (err) {
+      console.error("Cloud save failed:", err);
+      alert("Failed to save report: " + err.message);
+    }
+  };
+
+  // 5. Automatically load from Cloud when a link is opened
+  async function loadFraniliticsReportFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    const reportId = params.get("report");
+
+    // If there is no ?report= in the URL, the user opened a clean workspace
+    if (!reportId) return;
+
+    try {
+      const docRef = doc(db, "pitch_reports", reportId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        const cloudData = docSnap.data().data;
+        console.log("Franilitics data retrieved from cloud:", cloudData);
+
+        // --- CONNECT TO YOUR APP HERE ---
+        // Pass cloudData to your app's existing load or render function
+        // (for example: loadPitchData(cloudData); or renderDashboard(cloudData);)
+        if (typeof window.loadPitchData === "function") {
+          window.loadPitchData(cloudData);
+        } else {
+          // Fallback event if you prefer listening for an event:
+          window.dispatchEvent(new CustomEvent("franilitics:dataLoaded", { detail: cloudData }));
+        }
+
+      } else {
+        alert("This report could not be found or the link is invalid.");
+      }
+    } catch (err) {
+      console.error("Cloud load failed:", err);
+    }
+  }
+
+  // Check URL parameters as soon as the HTML elements finish loading
+  window.addEventListener("DOMContentLoaded", loadFraniliticsReportFromUrl);
+</script>
 </body>
 </html>
