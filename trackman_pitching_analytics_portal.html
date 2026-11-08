@@ -1,488 +1,1113 @@
-<!-- ... existing code ... -->
-      <!-- PROMINENT COACH / PITCHER PRIORITY KPI DASHBOARD -->
-      <div>
-        <div class="flex items-center justify-between mb-2.5">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-crosshairs text-sky-400"></i> Core Competitive KPIs (Franilitics Targets)
-          </h3>
-          <span class="text-[11px] text-slate-400 font-mono flex items-center gap-2">
-            <span class="text-emerald-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400 inline-block shadow-[0_0_6px_rgba(52,211,153,0.8)]"></span> Plus / D1 Ace</span>
-            <span class="text-amber-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400 inline-block shadow-[0_0_6px_rgba(251,191,36,0.8)]"></span> D1 / Pro Avg</span>
-            <span class="text-rose-400 font-bold flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500 inline-block shadow-[0_0_6px_rgba(244,63,94,0.8)]"></span> Area of Focus</span>
-          </span>
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FRANILITICS • Pitching Analytics Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { brand: { 500: '#0ea5e9', 600: '#0284c7' } } } }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+    .sort-icon.active { color: #38bdf8; }
+    
+    /* Premium UI Enhancements */
+    .glass-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.9) 0%, rgba(7, 11, 20, 0.95) 100%);
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 4px 20px rgba(0,0,0,0.5);
+    }
+    .text-glow-green { text-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+    .text-glow-amber { text-shadow: 0 0 12px rgba(245, 158, 11, 0.4); }
+    .text-glow-rose { text-shadow: 0 0 12px rgba(244, 63, 94, 0.4); }
+    
+    .table-container { border-radius: 0.5rem; overflow: hidden; border: 1px solid rgba(51, 65, 85, 0.5); }
+    th { letter-spacing: 0.05em; font-size: 0.65rem; }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-[#050914] to-[#0a101d] text-slate-100 min-h-screen flex flex-col antialiased selection:bg-sky-500/30">
+
+  <!-- TOP HEADER -->
+  <header class="border-b border-slate-800/80 bg-[#070b14]/80 backdrop-blur-md sticky top-0 z-50 shadow-[0_4px_30px_rgba(0,0,0,0.5)]">
+    <div class="max-w-[95%] mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer group" onclick="setListView()">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white shadow-[0_0_15px_rgba(14,165,233,0.3)] ring-1 ring-white/20 group-hover:shadow-[0_0_20px_rgba(14,165,233,0.5)] transition-all">
+          <i class="fa-solid fa-baseball text-lg"></i>
         </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-lg tracking-wider text-white drop-shadow-md">FRANILITICS</span>
+          </div>
+          <p class="text-[10px] text-sky-400/80 font-mono tracking-widest uppercase leading-none mt-1">Pitching Analytics</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div id="cloud-status" class="px-3 py-2 rounded-lg text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex">
+          <i class="fa-solid fa-cloud"></i> Local Mode
+        </div>
+        <button onclick="setListView()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50">
+          <i class="fa-solid fa-users"></i> <span>Roster</span>
+        </button>
+        <button onclick="setMasterView()" class="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800/50 hover:bg-slate-700/80 text-white transition flex items-center gap-2 border border-slate-700/50">
+          <i class="fa-solid fa-chart-line"></i> <span>Leaderboard</span>
+        </button>
+        <button onclick="openUploadModal()" class="px-4 py-2 rounded-lg text-xs font-bold bg-emerald-600/90 hover:bg-emerald-500 text-white transition flex items-center gap-2 shadow-[0_0_10px_rgba(16,185,129,0.2)] border border-emerald-500/50 hover:shadow-[0_0_15px_rgba(16,185,129,0.4)]">
+          <i class="fa-solid fa-cloud-arrow-up"></i> <span>Upload CSV</span>
+        </button>
+      </div>
+    </div>
+  </header>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3.5">
-          <!-- 1-1 Win % -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-              <span>1-1 Count Win %</span>
-              <span id="kpi-oneone-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-1 max-w-[95%] w-full mx-auto p-4 space-y-6">
+
+    <!-- VIEW: ROSTER LIST -->
+    <div id="view-roster" class="space-y-4">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center pb-4 border-b border-slate-800/70 gap-4">
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Pitcher Roster</h1>
+          <p class="text-sm text-slate-400 mt-1">Select an athlete to view their advanced development report.</p>
+        </div>
+        <div class="relative w-full md:w-72">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+          <input type="text" id="rosterSearchInput" oninput="filterRosterCards()" placeholder="Search Pitchers..." class="w-full bg-[#0f172a]/80 backdrop-blur border border-slate-700/80 rounded-xl pl-9 pr-4 py-2.5 text-sm text-white focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none transition shadow-inner">
+        </div>
+      </div>
+      <div id="roster-card-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+    </div>
+
+    <!-- VIEW: INDIVIDUAL PITCHER REPORT -->
+    <div id="view-pitcher" class="hidden space-y-5">
+      
+      <!-- Player Header & Filters -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative overflow-hidden">
+        <!-- Background Accent -->
+        <div class="absolute top-0 right-0 w-96 h-96 bg-sky-600/10 rounded-full blur-[80px] -mr-20 -mt-20 pointer-events-none"></div>
+        
+        <div class="flex items-center gap-5 relative z-10">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white text-3xl font-black shadow-[0_0_20px_rgba(14,165,233,0.4)] ring-2 ring-white/10" id="pitcher-avatar-initials">--</div>
+          <div>
+            <div class="flex items-center gap-3">
+              <h2 class="text-3xl font-black text-white tracking-tight drop-shadow-md" id="pitcher-display-name">--</h2>
+              <span id="pitcher-hand-badge" class="px-2.5 py-1 rounded-md text-xs font-black tracking-widest bg-slate-800 text-sky-400 border border-sky-900/50 shadow-sm">RHP</span>
             </div>
-            <div id="kpi-oneone" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
-            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;58.0% (Avg: ~52%)</div>
+            <div class="text-xs text-sky-200/60 font-mono mt-1.5 uppercase tracking-wider font-semibold" id="pitcher-total-pitches">-- Pitches Logged</div>
+          </div>
+        </div>
+        
+        <div class="flex flex-wrap items-center gap-3 relative z-10">
+          <!-- Legend -->
+          <div class="hidden xl:flex items-center gap-4 text-[10px] font-mono text-slate-300 bg-black/40 px-4 py-2 rounded-xl border border-slate-700/50 shadow-inner">
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span> Plus / Ace</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></span> D1 Avg</span>
+            <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)]"></span> Focus Area</span>
           </div>
 
-          <!-- FPS % -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-              <span>First Pitch Strike %</span>
-              <span id="kpi-fps-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
-            </div>
-            <div id="kpi-fps" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
-            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;62.0% (Avg: 58.4%)</div>
+          <select id="outingSelect" onchange="onOutingChange()" class="bg-[#0f172a] border border-slate-600 rounded-xl font-mono text-xs text-slate-200 px-4 py-2.5 outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition cursor-pointer shadow-inner">
+            <option value="latest">Latest Outing</option>
+            <option value="all">All Outings</option>
+          </select>
+          
+          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-xs shadow-inner">
+            <button onclick="setBatterHandFilter('ALL')" id="filter-hand-all" class="px-3 py-1.5 rounded-lg bg-sky-500 text-white font-bold transition shadow-sm">All</button>
+            <button onclick="setBatterHandFilter('Right')" id="filter-hand-rhh" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">vs RHH</button>
+            <button onclick="setBatterHandFilter('Left')" id="filter-hand-lhh" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">vs LHH</button>
           </div>
-
-          <!-- <= 4 Pitches / PA -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-              <span>&le; 4 Pitches / PA %</span>
-              <span id="kpi-fourless-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
-            </div>
-            <div id="kpi-fourless" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
-            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;52.0% (Avg: ~49%)</div>
-          </div>
-
-          <!-- Ground Ball % -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-              <span>Ground Ball (GB) %</span>
-              <span id="kpi-gb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
-            </div>
-            <div id="kpi-gb" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
-            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;48.0% (Avg: ~44%)</div>
-          </div>
-
-          <!-- K : BB Ratio -->
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-3.5 shadow-md hover:border-slate-700 transition col-span-2 md:col-span-1">
-            <div class="flex items-center justify-between text-xs text-slate-400 font-medium mb-1">
-              <span>K : BB Ratio</span>
-              <span id="kpi-kbb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600"></span>
-            </div>
-            <div id="kpi-kbb" class="text-2xl font-black font-mono tracking-tight text-white">--</div>
-            <div class="text-[10px] text-slate-500 mt-1 font-mono">D1 Target: &ge;3.00 (Avg: ~2.10)</div>
+          
+          <div class="bg-black/40 border border-slate-700/50 rounded-xl p-1 flex font-mono text-xs shadow-inner">
+            <button onclick="setTagSource('auto')" id="tag-source-auto" class="px-3 py-1.5 rounded-lg bg-indigo-500 text-white font-bold transition shadow-sm">Auto-Tag</button>
+            <button onclick="setTagSource('tagged')" id="tag-source-tagged" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition">User-Tag</button>
           </div>
         </div>
       </div>
 
-      <!-- COUNT LEVERAGE & MECHANICAL CONSISTENCY GRID (NEW) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <!-- Count Leverage & Situational Splits -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-scale-balanced text-sky-400"></i> Count Leverage & Situational Splits
-            </h4>
-            <span class="text-[11px] text-slate-400 font-mono">Ahead vs. Behind Execution</span>
+      <!-- CORE KPIS (5 blocks) -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">1-1 Win %</span>
+            <span id="kpi-oneone-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
           </div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5" id="count-leverage-cards">
-            <!-- Dynamic count leverage cards populated by JS -->
+          <div id="kpi-oneone" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;58.0%</span></div>
+        </div>
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">FPS %</span>
+            <span id="kpi-fps-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+          </div>
+          <div id="kpi-fps" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;62.0%</span></div>
+        </div>
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">&le; 4 Pitches/PA</span>
+            <span id="kpi-fourless-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+          </div>
+          <div id="kpi-fourless" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;52.0%</span></div>
+        </div>
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">GB %</span>
+            <span id="kpi-gb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+          </div>
+          <div id="kpi-gb" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;48.0%</span></div>
+        </div>
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-4 flex flex-col justify-between group hover:border-slate-500 transition-colors">
+          <div class="flex justify-between items-center mb-2">
+            <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest">K : BB</span>
+            <span id="kpi-kbb-dot" class="w-2.5 h-2.5 rounded-full bg-slate-600 shadow-sm"></span>
+          </div>
+          <div id="kpi-kbb" class="text-3xl font-black font-mono tracking-tighter drop-shadow-md">--</div>
+          <div class="text-[9px] text-slate-500 font-mono mt-2 border-t border-slate-700/50 pt-2 flex justify-between uppercase tracking-wider font-semibold"><span>Target:</span> <span class="text-slate-400">&ge;3.00</span></div>
+        </div>
+      </div>
+
+      <!-- ARSENAL TABLE -->
+      <div class="glass-card border border-slate-700/50 rounded-2xl p-5">
+        <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-table-list text-sky-400"></i> Arsenal Metrics</h3>
+        <div class="table-container">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="uppercase text-slate-400 bg-black/60 border-b border-slate-700/50">
+              <tr>
+                <th class="py-3 px-4 font-bold">Pitch</th>
+                <th class="py-3 px-3 font-bold">Count</th>
+                <th class="py-3 px-3 font-bold">Usage</th>
+                <th class="py-3 px-3 font-bold text-sky-400">Velo Avg</th>
+                <th class="py-3 px-3 font-bold text-sky-400">Velo Max</th>
+                <th class="py-3 px-3 font-bold">Spin</th>
+                <th class="py-3 px-3 font-bold">IVB</th>
+                <th class="py-3 px-3 font-bold">HB</th>
+                <th class="py-3 px-3 font-bold">Strike %</th>
+                <th class="py-3 px-3 font-bold text-amber-400">Whiff %</th>
+                <th class="py-3 px-3 font-bold">Zone %</th>
+                <th class="py-3 px-3 font-bold">Chase %</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body" class="divide-y divide-slate-700/50 bg-[#0f172a]/40"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ADVANCED DIAGNOSTICS ROW 1: LEVERAGE & CONSISTENCY -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Leverage Splits -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-scale-balanced text-sky-400"></i> Count Leverage</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 flex-1" id="leverage-cards">
+            <!-- Populated by JS -->
           </div>
         </div>
-
-        <!-- Pitch Velocity, Spin & Mechanical Consistency Diagnostics -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
-          <div class="flex items-center justify-between mb-3">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-gauge-high text-sky-400"></i> Arsenal Consistency & Repeatability
-            </h4>
-            <span class="text-[11px] text-slate-400 font-mono">&Delta; Range & Slot Repeatability</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs font-mono">
-              <thead class="text-[10px] uppercase text-slate-400 border-b border-slate-800 bg-slate-950/40">
+        <!-- Consistency Diagnostics -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-microscope text-sky-400"></i> Arsenal Consistency</h3>
+          <div class="table-container flex-1">
+            <table class="w-full text-left text-xs font-mono h-full">
+              <thead class="text-slate-400 bg-black/60 border-b border-slate-700/50 uppercase">
                 <tr>
-                  <th class="py-1.5 px-2">Pitch</th>
-                  <th class="py-1.5 px-2">Velo Spread (&Delta;)</th>
-                  <th class="py-1.5 px-2">Velo StdDev (&sigma;)</th>
-                  <th class="py-1.5 px-2">Spin Range</th>
-                  <th class="py-1.5 px-2">Rel Ht StdDev</th>
-                  <th class="py-1.5 px-2 text-right">Rating</th>
+                  <th class="py-3 px-4 font-bold">Pitch</th>
+                  <th class="py-3 px-3 font-bold">Velo Spread (&Delta;)</th>
+                  <th class="py-3 px-3 font-bold">Velo StdDev (&sigma;)</th>
+                  <th class="py-3 px-3 font-bold">Spin Range</th>
+                  <th class="py-3 px-3 font-bold">Rel Ht StdDev</th>
                 </tr>
               </thead>
-              <tbody id="arsenal-consistency-tbody" class="divide-y divide-slate-800/60">
-                <!-- Dynamic consistency rows -->
-              </tbody>
+              <tbody id="consistency-tbody" class="divide-y divide-slate-700/50 bg-[#0f172a]/40"></tbody>
             </table>
           </div>
         </div>
       </div>
 
-      <!-- ATTACK ZONE COMMAND & SPRAY CHART SECTION -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <!-- Attack Zone Execution Breakdown -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-bullseye text-sky-400"></i> Attack Zone Execution (Heart vs. Shadow)
-            </h4>
-            <span class="text-[11px] text-slate-400 font-mono">Target: &gt;42% Shadow, &lt;22% Heart</span>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-2" id="attack-zone-kpi-grid">
-            <!-- Dynamic Heart/Shadow/Chase/Waste cards -->
-          </div>
-
-          <!-- Stacked Zone Distribution Bar -->
-          <div class="mt-3">
-            <div class="flex justify-between text-[11px] text-slate-400 font-mono mb-1">
-              <span>Attack Distribution</span>
-              <span id="attack-distribution-summary" class="text-slate-300 font-bold"></span>
-            </div>
-            <div class="h-3 w-full bg-slate-950 rounded-full flex overflow-hidden border border-slate-800" id="attack-distribution-bar">
-              <!-- Dynamically populated bars -->
-            </div>
-          </div>
+      <!-- ADVANCED DIAGNOSTICS ROW 2: ATTACK ZONES & SPRAY CHART -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- Attack Zones -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col justify-center gap-6">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-layer-group text-sky-400"></i> Zone Command Execution</h3>
+          <div id="attack-zone-bars" class="w-full flex flex-col gap-4 text-xs font-mono"></div>
         </div>
-
-        <!-- Batted Ball Diamond Spray Chart -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 shadow-md">
-          <div class="flex items-center justify-between mb-2">
-            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-baseball text-sky-400"></i> Batted Ball Diamond Spray Chart
-            </h4>
-            <div class="flex items-center gap-2 text-[10px] font-mono">
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> &ge;95 mph Hard-Hit</span>
-              <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-sky-400"></span> &lt;95 mph</span>
+        <!-- Spray Chart -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-baseball-bat-ball text-sky-400"></i> Spray Chart</h3>
+            <div class="text-[9px] font-black tracking-wider uppercase text-slate-300 bg-black/50 px-2.5 py-1 rounded border border-slate-700/50 shadow-inner">
+              <span class="w-2.5 h-2.5 inline-block rounded-full bg-rose-500 mr-1 align-text-top shadow-[0_0_5px_rgba(244,63,94,0.8)]"></span>&ge;95 mph <span class="text-slate-600 mx-1.5">|</span>
+              <span class="w-2.5 h-2.5 inline-block rounded-full bg-sky-400 mr-1 align-text-top shadow-[0_0_5px_rgba(56,189,248,0.8)]"></span>&lt;95 mph
             </div>
           </div>
-          <div class="relative w-full aspect-[4/3] max-h-56 bg-slate-950 rounded-lg overflow-hidden border border-slate-800 flex items-center justify-center">
-            <canvas id="battedBallCanvas" class="w-full h-full block"></canvas>
-            <div id="no-batted-balls-msg" class="hidden absolute text-xs text-slate-500 font-mono">No balls in play recorded in this sample</div>
+          <div class="relative w-full aspect-[2/1] bg-[#14231b] rounded-xl border border-emerald-900/40 overflow-hidden flex-1 shadow-[inset_0_5px_20px_rgba(0,0,0,0.5)]">
+            <canvas id="sprayCanvas" class="w-full h-full block"></canvas>
           </div>
         </div>
       </div>
-<!-- ... existing code ... -->
-      // Render count leverage cards
-      renderCountLeverageCards(pitches);
 
-      // Render Arsenal Consistency diagnostics
-      renderArsenalConsistencyTable(pitches);
+      <!-- ROW 3: VISUALIZERS (STRIKE ZONE, PITCH SEP, MOVEMENT) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- Strike Zone -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2"><i class="fa-solid fa-bullseye text-sky-400"></i> Strike Zone</h3>
+            <div class="flex gap-1 text-[10px] font-mono bg-black/40 p-1 rounded-lg border border-slate-700/50 shadow-inner">
+              <button onclick="setZoneFilter('all')" id="zone-filter-all" class="px-2.5 py-1 rounded bg-sky-500 text-white font-bold transition shadow-sm">All</button>
+              <button onclick="setZoneFilter('whiffs')" id="zone-filter-whiffs" class="px-2.5 py-1 rounded text-amber-400 hover:text-white transition">Whiffs</button>
+            </div>
+          </div>
+          <div class="relative w-full aspect-[4/5] bg-gradient-to-b from-[#0f172a] to-[#020617] rounded-xl border border-slate-700/60 flex items-center justify-center shadow-[inset_0_5px_30px_rgba(0,0,0,0.8)]">
+            <canvas id="strikeZoneCanvas" class="w-full h-full block"></canvas>
+          </div>
+        </div>
+        <!-- Pitch Separation (Velo vs IVB) -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-bolt text-sky-400"></i> Pitch Separation</h3>
+          <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
+            <canvas id="pitchSepCanvas" class="w-full h-full block"></canvas>
+          </div>
+        </div>
+        <!-- Movement Chart -->
+        <div class="glass-card border border-slate-700/50 rounded-2xl p-5 flex flex-col">
+          <h3 class="text-sm font-black uppercase tracking-widest text-white mb-4 flex items-center gap-2"><i class="fa-solid fa-arrows-split-up-and-left text-sky-400"></i> Movement Plot</h3>
+          <div class="relative w-full aspect-[4/5] bg-black/40 rounded-xl border border-slate-700/50 p-2 shadow-inner">
+            <canvas id="movementChartCanvas" class="w-full h-full block"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
 
-      // Render Attack Zone metrics & stacked bar
-      renderAttackZoneBreakdown(pitches);
+    <!-- VIEW: LEADERBOARD -->
+    <div id="view-master" class="hidden space-y-5">
+      <div class="flex flex-col md:flex-row md:justify-between md:items-center pb-4 border-b border-slate-800/70 gap-4">
+        <div>
+          <h1 class="text-3xl font-black text-white tracking-tight drop-shadow-md">Staff Leaderboard</h1>
+          <p class="text-sm text-slate-400 mt-1">Click any column header to sort. Colors map to D1 benchmarks.</p>
+        </div>
+        <div id="sort-indicator" class="text-[11px] font-mono bg-sky-900/40 text-sky-300 border border-sky-700/50 px-4 py-2 rounded-xl font-bold shadow-inner">
+          Sorted by: Strike % (Desc)
+        </div>
+      </div>
+      <div class="glass-card border border-slate-700/50 rounded-2xl overflow-hidden shadow-2xl">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm font-mono">
+            <thead class="uppercase text-slate-300 bg-black/60 border-b border-slate-700/50 select-none text-xs font-black tracking-widest">
+              <tr>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('name')">
+                  Pitcher <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-name"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('hand')">
+                  Throws <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-hand"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('total')">
+                  Pitches <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-total"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-sky-400" onclick="sortLeaderboard('fbVelo')">
+                  Max Velo <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-fbVelo"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('strikePct')">
+                  Strike % <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-strikePct"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group text-amber-400" onclick="sortLeaderboard('whiffPct')">
+                  Whiff % <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-whiffPct"></i>
+                </th>
+                <th class="py-4 px-5 cursor-pointer hover:text-sky-400 transition group" onclick="sortLeaderboard('kbb')">
+                  K:BB <i class="fa-solid fa-sort ml-1.5 text-slate-500 group-hover:text-sky-400 sort-icon" id="sort-icon-kbb"></i>
+                </th>
+                <th class="py-4 px-5 text-right">Profile</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-tbody" class="divide-y divide-slate-700/40 bg-[#0f172a]/30"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
 
-      // Render Batted Ball Spray Chart
-      renderBattedBallSprayChart(pitches);
+  <!-- UPLOAD MODAL -->
+  <div id="uploadModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card border border-slate-600 rounded-3xl w-full max-w-md p-8 space-y-6 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="text-2xl font-black text-white flex items-center gap-3"><i class="fa-solid fa-cloud-arrow-up text-sky-400 drop-shadow-md"></i> Upload CSV</h3>
+        <button onclick="closeUploadModal()" class="text-slate-500 hover:text-white transition text-2xl">&times;</button>
+      </div>
+      <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-slate-600 hover:border-sky-500 bg-black/30 hover:bg-sky-900/20 rounded-2xl p-12 text-center cursor-pointer transition-all group shadow-inner">
+        <i class="fa-solid fa-file-csv text-5xl text-slate-500 group-hover:text-sky-400 mb-4 transition-colors"></i>
+        <div class="text-sm font-bold text-slate-300 group-hover:text-white">Click or drag TrackMan CSV here</div>
+        <div class="text-[10px] text-slate-500 mt-2 font-mono uppercase tracking-widest">Supports Tagged & Auto Types</div>
+        <input type="file" id="fileInput" accept=".csv" onchange="handleFileSelect(event)" class="hidden">
+      </div>
+    </div>
+  </div>
 
-      // Render plots
-      drawStrikeZonePlot();
-      renderMovementChart();
-      renderReleaseSlotChart();
-      renderVeloMovementSeparationChart();
-      renderCountMatrix(pitches);
-<!-- ... existing code ... -->
-    /**
-     * Renders Count Leverage Cards (Ahead, Behind, Even, 2-Strikes)
-     */
-    function renderCountLeverageCards(pitches) {
-      const container = document.getElementById('count-leverage-cards');
-      if (!container) return;
+  <script>
+    const AppState = {
+      allPitches: [], pitchers: {}, currentPitcher: null, currentOuting: 'latest', 
+      batterHandFilter: 'ALL', zoneFilter: 'all', tagSource: 'auto',
+      charts: { movement: null, separation: null },
+      leaderboardSort: { key: 'strikePct', asc: false }
+    };
+    window.AppState = AppState;
+    
+    const PITCH_COLORS = { 'Four-Seam': '#ef4444', 'Sinker': '#f97316', 'Cutter': '#eab308', 'Slider': '#06b6d4', 'Sweeper': '#3b82f6', 'Curveball': '#8b5cf6', 'Changeup': '#10b981', 'Splitter': '#ec4899', 'Other': '#94a3b8' };
+    
+    // Set global Chart.js pro styling
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace';
 
-      const splits = {
-        ahead: { label: 'Ahead (0-1, 0-2, 1-2)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-emerald-400' },
-        behind: { label: 'Behind (1-0, 2-0, 3-1)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-rose-400' },
-        even: { label: 'Even (0-0, 1-1, 2-2)', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-sky-400' },
-        twoStrikes: { label: '2-Strike Counts', total: 0, strikes: 0, whiffs: 0, swings: 0, chase: 0, oZone: 0, color: 'text-amber-400' }
-      };
+    window.onload = function() {
+      const stored = localStorage.getItem('franilitics_pitches');
+      if (stored) { 
+        try { 
+          AppState.allPitches = JSON.parse(stored); 
+          if (AppState.allPitches.length > 0) {
+            processPitchesData(); 
+            setListView(); 
+            return; 
+          }
+        } catch (e) { console.error("Error loading stored pitches", e); } 
+      }
+      loadSampleData();
+    };
+
+    function getPitchType(p) {
+      let raw = AppState.tagSource === 'auto' ? (p.AutoPitchType || p.TaggedPitchType || '') : (p.TaggedPitchType || p.AutoPitchType || '');
+      let c = String(raw).toLowerCase();
+      if(c.includes('four') || c==='4s' || c==='ff' || c==='fb') return 'Four-Seam';
+      if(c.includes('sink') || c==='2s' || c==='si') return 'Sinker';
+      if(c.includes('cut') || c==='fc') return 'Cutter';
+      if(c.includes('sweep') || c==='st') return 'Sweeper';
+      if(c.includes('slid') || c==='sl') return 'Slider';
+      if(c.includes('curve') || c==='cu' || c==='cb') return 'Curveball';
+      if(c.includes('change') || c==='ch') return 'Changeup';
+      if(c.includes('split') || c==='sp' || c==='fs') return 'Splitter';
+      return 'Other';
+    }
+
+    function isStrikeEvent(p) {
+      const call = String(p.PitchCall || p.PlayResult || '').toLowerCase();
+      return call.includes('strike') || call.includes('foul') || call.includes('inplay') || parseFloat(p.ExitSpeed || 0) > 0;
+    }
+    function isWhiffEvent(p) { return String(p.PitchCall||'').toLowerCase().includes('swinging'); }
+    function isSwingEvent(p) { return isWhiffEvent(p) || (isStrikeEvent(p) && (String(p.PitchCall||'').toLowerCase().includes('foul') || parseFloat(p.ExitSpeed || 0) > 0 || String(p.PlayResult||'').toLowerCase().includes('inplay'))); }
+    function inZone(p) { const x=Math.abs(parseFloat(p.PlateLocSide||0)), z=parseFloat(p.PlateLocHeight||0); return x<=0.83 && z>=1.5 && z<=3.5; }
+
+    function getKpiTier(metric, val) {
+      const n = parseFloat(val);
+      if(isNaN(n)) return { text: 'text-slate-400', bg: 'bg-slate-500', glow: '' };
+      if(metric==='oneone') return n>=58 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=50 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='fps') return n>=62 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=55 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='fourless') return n>=52 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=46 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='gb') return n>=48 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=40 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='kbb') return n>=3.0 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=2.0 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='strikePct') return n>=64 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=58 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      if(metric==='whiffPct') return n>=24 ? {text:'text-emerald-400',bg:'bg-emerald-400',glow:'text-glow-green'} : n>=18 ? {text:'text-amber-400',bg:'bg-amber-400',glow:'text-glow-amber'} : {text:'text-rose-500',bg:'bg-rose-500',glow:'text-glow-rose'};
+      return { text: 'text-slate-200', bg: 'bg-slate-400', glow: '' };
+    }
+
+    function processPitchesData() {
+      AppState.pitchers = {};
+      AppState.allPitches.forEach(p => {
+        const name = (p.Pitcher || 'Unknown').trim();
+        const date = (p.Date || '2026-01-01').trim();
+        const hand = (String(p.PitcherThrows || 'R').toUpperCase().startsWith('L')) ? 'LHP' : 'RHP';
+        if (!AppState.pitchers[name]) AppState.pitchers[name] = { name, hand, outings: {}, allPitches: [] };
+        AppState.pitchers[name].allPitches.push(p);
+        if (!AppState.pitchers[name].outings[date]) AppState.pitchers[name].outings[date] = [];
+        AppState.pitchers[name].outings[date].push(p);
+      });
+    }
+
+    function computeMetrics(pitches) {
+      if(!pitches || !pitches.length) return {total:0,strikePct:'0.0',whiffPct:'0.0',fpsPct:'0.0',oneOneWinPct:'0.0',fourLessPct:'0.0',gbPct:'0.0',kbb:'0.00',fbVelo:'0.0'};
+      let strikes=0, swings=0, whiffs=0, fpsCount=0, fpsWin=0, oneOneCount=0, oneOneWin=0, gb=0, inPlay=0, k=0, bb=0;
+      let fbVelos=[];
+      let paMap = {};
 
       pitches.forEach(p => {
-        const b = p.Balls !== undefined ? p.Balls : (p.balls || 0);
-        const s = p.Strikes !== undefined ? p.Strikes : (p.strikes || 0);
-        const isStrike = isTrackmanStrike(p);
-        const isWhiff = isTrackmanWhiff(p);
-        const isSwing = isTrackmanSwing(p);
-        const isZone = isPitchInRulebookZone(p);
+        if(isStrikeEvent(p)) strikes++;
+        if(isSwingEvent(p)) swings++;
+        if(isWhiffEvent(p)) whiffs++;
+        const b = parseInt(p.Balls||0), s = parseInt(p.Strikes||0);
+        if(b===0 && s===0) { fpsCount++; if(isStrikeEvent(p)) fpsWin++; }
+        if(b===1 && s===1) { oneOneCount++; if(isStrikeEvent(p)) oneOneWin++; }
+        
+        const res = String(p.PlayResult||p.PitchCall||'').toLowerCase();
+        if(res.includes('inplay') || parseFloat(p.ExitSpeed||0) > 0) { inPlay++; if(parseFloat(p.Angle||0)<10) gb++; }
+        const korbb = String(p.KorBB||'').toLowerCase();
+        if(korbb.includes('strikeout')) k++;
+        if(korbb.includes('walk')) bb++;
 
-        let key = null;
-        if (s > b) key = 'ahead';
-        else if (b > s) key = 'behind';
-        else key = 'even';
-
-        if (splits[key]) {
-          splits[key].total++;
-          if (isStrike) splits[key].strikes++;
-          if (isSwing) splits[key].swings++;
-          if (isWhiff) splits[key].whiffs++;
-          if (!isZone) {
-            splits[key].oZone++;
-            if (isSwing) splits[key].chase++;
-          }
-        }
-
-        if (s === 2) {
-          splits.twoStrikes.total++;
-          if (isStrike) splits.twoStrikes.strikes++;
-          if (isSwing) splits.twoStrikes.swings++;
-          if (isWhiff) splits.twoStrikes.whiffs++;
-          if (!isZone) {
-            splits.twoStrikes.oZone++;
-            if (isSwing) splits.twoStrikes.chase++;
-          }
-        }
+        const type = getPitchType(p);
+        if(type==='Four-Seam' || type==='Sinker') fbVelos.push(parseFloat(p.RelSpeed||0));
+        
+        const paId = `${p.Inning||1}_${p.Batter||'B'}`;
+        paMap[paId] = (paMap[paId]||0) + 1;
       });
 
-      container.innerHTML = Object.keys(splits).map(k => {
-        const d = splits[k];
-        const strikePct = d.total > 0 ? ((d.strikes / d.total) * 100).toFixed(1) : '0.0';
-        const whiffPct = d.swings > 0 ? ((d.whiffs / d.swings) * 100).toFixed(1) : '0.0';
-        const chasePct = d.oZone > 0 ? ((d.chase / d.oZone) * 100).toFixed(1) : '0.0';
+      let fourL = Object.values(paMap).filter(v=>v<=4).length;
+      let fbMax = fbVelos.length ? Math.max(...fbVelos).toFixed(1) : '0.0';
 
+      return {
+        total: pitches.length,
+        strikePct: ((strikes/pitches.length)*100).toFixed(1),
+        whiffPct: swings ? ((whiffs/swings)*100).toFixed(1) : '0.0',
+        fpsPct: fpsCount ? ((fpsWin/fpsCount)*100).toFixed(1) : '0.0',
+        oneOneWinPct: oneOneCount ? ((oneOneWin/oneOneCount)*100).toFixed(1) : '0.0',
+        fourLessPct: Object.keys(paMap).length ? ((fourL/Object.keys(paMap).length)*100).toFixed(1) : '0.0',
+        gbPct: inPlay ? ((gb/inPlay)*100).toFixed(1) : '0.0',
+        kbb: bb ? (k/bb).toFixed(2) : k.toFixed(2),
+        fbVelo: fbMax
+      };
+    }
+
+    function setListView() { 
+      document.getElementById('view-roster').classList.remove('hidden'); 
+      document.getElementById('view-pitcher').classList.add('hidden'); 
+      document.getElementById('view-master').classList.add('hidden'); 
+      renderRosterList(); 
+    }
+    
+    function setMasterView() { 
+      document.getElementById('view-roster').classList.add('hidden'); 
+      document.getElementById('view-pitcher').classList.add('hidden'); 
+      document.getElementById('view-master').classList.remove('hidden'); 
+      renderLeaderboard(); 
+    }
+    
+    function setPitcherView(name) { 
+      AppState.currentPitcher=name; AppState.currentOuting='latest'; AppState.zoneFilter='all'; AppState.batterHandFilter='ALL';
+      document.getElementById('view-roster').classList.add('hidden'); 
+      document.getElementById('view-pitcher').classList.remove('hidden'); 
+      document.getElementById('view-master').classList.add('hidden'); 
+      updateDropdowns(); 
+      updateFilterButtons();
+      renderProfile(); 
+    }
+
+    function getActivePitches() {
+      const po = AppState.pitchers[AppState.currentPitcher];
+      if(!po) return [];
+      let list = AppState.currentOuting === 'all' ? po.allPitches : (po.outings[AppState.currentOuting] || po.outings[Object.keys(po.outings).sort().reverse()[0]]);
+      if(AppState.batterHandFilter!=='ALL') list = list.filter(p=>String(p.BatterSide||'R').toUpperCase().startsWith(AppState.batterHandFilter[0]));
+      return list;
+    }
+
+    function renderRosterList() {
+      const cont = document.getElementById('roster-card-list');
+      cont.innerHTML = Object.keys(AppState.pitchers).sort().map(n => {
+        const po = AppState.pitchers[n];
+        const latest = Object.keys(po.outings).sort().reverse()[0];
+        const m = computeMetrics(po.outings[latest] || po.allPitches);
+        const inits = n.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
         return `
-          <div class="bg-slate-950/70 border border-slate-800/80 rounded-lg p-2.5 flex flex-col justify-between">
-            <div>
-              <div class="text-[10px] font-bold uppercase text-slate-400 truncate mb-1">${d.label}</div>
-              <div class="text-lg font-black font-mono ${d.color}">${d.total} <span class="text-[10px] text-slate-500 font-normal">pitches</span></div>
+          <div onclick="setPitcherView('${n}')" class="glass-card border border-slate-700/50 hover:border-sky-500/80 rounded-2xl p-6 cursor-pointer group transition-all relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-sky-500/10 rounded-full blur-3xl -mr-6 -mt-6 pointer-events-none group-hover:bg-sky-500/20 transition"></div>
+            <div class="flex items-center gap-4 mb-5 relative z-10">
+              <div class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white text-xl font-black flex items-center justify-center shadow-[0_0_15px_rgba(14,165,233,0.3)]">${inits}</div>
+              <div>
+                <h3 class="font-black text-white text-xl group-hover:text-sky-400 transition tracking-tight">${n}</h3>
+                <div class="text-[11px] text-slate-400 font-mono tracking-widest uppercase mt-0.5">${po.hand} • ${latest}</div>
+              </div>
             </div>
-            <div class="space-y-1 mt-2 text-[10px] font-mono text-slate-300">
-              <div class="flex justify-between"><span>Strike %</span> <span class="font-bold">${strikePct}%</span></div>
-              <div class="flex justify-between"><span>Whiff %</span> <span class="font-bold text-sky-400">${whiffPct}%</span></div>
-              <div class="flex justify-between"><span>Chase %</span> <span class="font-bold text-amber-400">${chasePct}%</span></div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center font-mono text-[10px] relative z-10 uppercase tracking-wider font-semibold">
+              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">1-1 WIN</span><span class="${getKpiTier('oneone',m.oneOneWinPct).text} font-black text-xs drop-shadow-sm">${m.oneOneWinPct}%</span></div>
+              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">FPS %</span><span class="${getKpiTier('fps',m.fpsPct).text} font-black text-xs drop-shadow-sm">${m.fpsPct}%</span></div>
+              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">&le;4 P/PA</span><span class="${getKpiTier('fourless',m.fourLessPct).text} font-black text-xs drop-shadow-sm">${m.fourLessPct}%</span></div>
+              <div class="bg-black/40 p-2.5 rounded-xl border border-slate-700/50 shadow-inner"><span class="text-slate-500 block mb-1">K:BB</span><span class="${getKpiTier('kbb',m.kbb).text} font-black text-xs drop-shadow-sm">${m.kbb}</span></div>
             </div>
           </div>
         `;
       }).join('');
     }
 
-    /**
-     * Renders Arsenal Consistency Diagnostics Table
-     */
-    function renderArsenalConsistencyTable(pitches) {
-      const tbody = document.getElementById('arsenal-consistency-tbody');
-      if (!tbody) return;
+    function filterRosterCards() {
+      const q = document.getElementById('rosterSearchInput').value.toLowerCase();
+      document.querySelectorAll('#roster-card-list > div').forEach(c => c.style.display = c.textContent.toLowerCase().includes(q) ? 'block' : 'none');
+    }
 
-      const groups = {};
-      pitches.forEach(p => {
-        const type = getPitchType(p);
-        if (!groups[type]) groups[type] = [];
-        groups[type].push(p);
+    function updateDropdowns() {
+      const po = AppState.pitchers[AppState.currentPitcher];
+      const dates = Object.keys(po.outings).sort().reverse();
+      document.getElementById('outingSelect').innerHTML = `<option value="latest">Latest (${dates[0]})</option><option value="all">All Outings</option>` + dates.map(d=>`<option value="${d}">${d}</option>`).join('');
+      document.getElementById('outingSelect').value = AppState.currentOuting;
+    }
+
+    function updateFilterButtons() {
+      const s='bg-sky-500 text-white font-bold shadow-[0_0_10px_rgba(14,165,233,0.4)]', us='text-slate-400 hover:text-white';
+      const is='bg-indigo-500 text-white font-bold shadow-[0_0_10px_rgba(99,102,241,0.4)]';
+      document.getElementById('filter-hand-all').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='ALL'?s:us}`;
+      document.getElementById('filter-hand-rhh').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='Right'?s:us}`;
+      document.getElementById('filter-hand-lhh').className = `px-3 py-1.5 rounded-lg transition ${AppState.batterHandFilter==='Left'?s:us}`;
+      
+      document.getElementById('tag-source-auto').className = `px-3 py-1.5 rounded-lg transition ${AppState.tagSource==='auto'?is:us}`;
+      document.getElementById('tag-source-tagged').className = `px-3 py-1.5 rounded-lg transition ${AppState.tagSource==='tagged'?is:us}`;
+
+      const zs='bg-sky-500 text-white font-bold shadow-[0_0_10px_rgba(14,165,233,0.4)]', zus='text-slate-400 hover:text-white', zw='bg-amber-500 text-slate-900 font-bold shadow-[0_0_10px_rgba(245,158,11,0.4)]';
+      document.getElementById('zone-filter-all').className = `px-2.5 py-1 rounded-lg transition ${AppState.zoneFilter==='all'?zs:zus}`;
+      document.getElementById('zone-filter-whiffs').className = `px-2.5 py-1 rounded-lg transition ${AppState.zoneFilter==='whiffs'?zw:zus}`;
+    }
+
+    function onOutingChange() { AppState.currentOuting = document.getElementById('outingSelect').value; renderProfile(); }
+    function setBatterHandFilter(h) { AppState.batterHandFilter = h; updateFilterButtons(); renderProfile(); }
+    function setTagSource(s) { AppState.tagSource = s; updateFilterButtons(); renderProfile(); }
+    function setZoneFilter(f) { AppState.zoneFilter = f; updateFilterButtons(); drawStrikeZonePlot(); }
+
+    function renderProfile() {
+      const po = AppState.pitchers[AppState.currentPitcher];
+      const pitches = getActivePitches();
+      document.getElementById('pitcher-display-name').textContent = po.name;
+      document.getElementById('pitcher-avatar-initials').textContent = po.name.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase();
+      document.getElementById('pitcher-hand-badge').textContent = po.hand;
+      document.getElementById('pitcher-total-pitches').textContent = `${pitches.length} Pitches Logged`;
+
+      const m = computeMetrics(pitches);
+      ['oneone','fps','fourless','gb','kbb'].forEach(k => {
+        const val = m[k==='fourless'?'fourLessPct':k==='oneone'?'oneOneWinPct':k+'Pct'] || m.kbb;
+        document.getElementById(`kpi-${k}`).textContent = val + (k==='kbb'?'':'%');
+        const tier = getKpiTier(k, val);
+        document.getElementById(`kpi-${k}`).className = `text-3xl font-black font-mono tracking-tighter drop-shadow-md ${tier.text} ${tier.glow}`;
+        document.getElementById(`kpi-${k}-dot`).className = `w-2.5 h-2.5 rounded-full shadow-sm ${tier.bg}`;
       });
 
-      const rows = Object.keys(groups).map(type => {
-        const list = groups[type];
-        const velos = list.map(p => parseFloat(p.RelSpeed || p.Velocity || p.velo)).filter(v => !isNaN(v));
-        const spins = list.map(p => parseFloat(p.SpinRate || p.spin_rate)).filter(s => !isNaN(s));
-        const relHeights = list.map(p => parseFloat(p.RelHeight || p.ReleaseHeight)).filter(h => !isNaN(h));
+      // Arsenal & Consistency
+      const ars = {}, cons = {};
+      pitches.forEach(p => {
+        const t = getPitchType(p);
+        if(!ars[t]) ars[t] = { c:0, v:[], s:[], i:[], h:[], str:0, sw:0, wh:0, iz:0, oz:0, ch:0, rh:[] };
+        ars[t].c++;
+        const v=parseFloat(p.RelSpeed), sp=parseFloat(p.SpinRate), ivb=parseFloat(p.InducedVertBreak), hb=parseFloat(p.HorzBreak), rh=parseFloat(p.RelHeight);
+        if(!isNaN(v)) ars[t].v.push(v); if(!isNaN(sp)) ars[t].s.push(sp); if(!isNaN(ivb)) ars[t].i.push(ivb); if(!isNaN(hb)) ars[t].h.push(hb); if(!isNaN(rh)) ars[t].rh.push(rh);
+        if(isStrikeEvent(p)) ars[t].str++;
+        if(isSwingEvent(p)) ars[t].sw++;
+        if(isWhiffEvent(p)) ars[t].wh++;
+        if(inZone(p)) ars[t].iz++; else { ars[t].oz++; if(isSwingEvent(p)) ars[t].ch++; }
+      });
 
-        if (velos.length === 0) return '';
+      const stdDev = arr => { if(arr.length<2) return 0; const mu = arr.reduce((a,b)=>a+b)/arr.length; return Math.sqrt(arr.reduce((a,b)=>a+Math.pow(b-mu,2),0)/(arr.length-1)); };
 
-        const minV = Math.min(...velos);
-        const maxV = Math.max(...velos);
-        const deltaV = (maxV - minV).toFixed(1);
-
-        // Standard Deviation of Velo
-        const meanV = velos.reduce((a, b) => a + b, 0) / velos.length;
-        const varianceV = velos.reduce((a, b) => a + Math.pow(b - meanV, 2), 0) / velos.length;
-        const stdDevV = Math.sqrt(varianceV).toFixed(1);
-
-        // Spin Range
-        const minSpin = spins.length ? Math.min(...spins).toFixed(0) : '--';
-        const maxSpin = spins.length ? Math.max(...spins).toFixed(0) : '--';
-
-        // Rel Height Std Dev (in inches)
-        let relHStd = '--';
-        if (relHeights.length > 1) {
-          const meanH = relHeights.reduce((a, b) => a + b, 0) / relHeights.length;
-          const varH = relHeights.reduce((a, b) => a + Math.pow(b - meanH, 2), 0) / relHeights.length;
-          relHStd = (Math.sqrt(varH) * 12).toFixed(1) + '"';
-        }
-
-        // Rating
-        let rating = '<span class="text-emerald-400 font-bold bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">Elite</span>';
-        if (stdDevV > 1.8) {
-          rating = '<span class="text-rose-400 font-bold bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-800">Volatile</span>';
-        } else if (stdDevV > 1.2) {
-          rating = '<span class="text-amber-400 font-bold bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-800">Solid</span>';
-        }
-
+      document.getElementById('metrics-table-body').innerHTML = Object.keys(ars).sort((a,b)=>ars[b].c-ars[a].c).map(t => {
+        const d = ars[t];
+        const vAvg = d.v.length ? (d.v.reduce((a,b)=>a+b)/d.v.length).toFixed(1) : '--';
         return `
-          <tr class="hover:bg-slate-800/40 transition">
-            <td class="py-2 px-2 font-bold text-slate-200">${type} <span class="text-[10px] text-slate-500 font-normal">(${list.length})</span></td>
-            <td class="py-2 px-2 text-slate-300 font-mono">${deltaV} mph</td>
-            <td class="py-2 px-2 text-sky-400 font-mono font-bold">&plusmn;${stdDevV}</td>
-            <td class="py-2 px-2 text-slate-400 font-mono">${minSpin} - ${maxSpin}</td>
-            <td class="py-2 px-2 text-slate-300 font-mono">${relHStd}</td>
-            <td class="py-2 px-2 text-right font-mono">${rating}</td>
+          <tr class="hover:bg-slate-800/80 transition-colors">
+            <td class="py-3 px-4 text-white font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full shadow-[0_0_8px_rgba(255,255,255,0.4)]" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span>${t}</td>
+            <td class="py-3 px-3">${d.c}</td>
+            <td class="py-3 px-3">${((d.c/pitches.length)*100).toFixed(1)}%</td>
+            <td class="py-3 px-3 text-sky-400 font-bold">${vAvg}</td>
+            <td class="py-3 px-3 text-white font-semibold">${d.v.length?Math.max(...d.v).toFixed(1):'--'}</td>
+            <td class="py-3 px-3">${d.s.length?(d.s.reduce((a,b)=>a+b)/d.s.length).toFixed(0):'--'}</td>
+            <td class="py-3 px-3">${d.i.length?(d.i.reduce((a,b)=>a+b)/d.i.length).toFixed(1):'--'}</td>
+            <td class="py-3 px-3">${d.h.length?(d.h.reduce((a,b)=>a+b)/d.h.length).toFixed(1):'--'}</td>
+            <td class="py-3 px-3 font-black ${getKpiTier('strikePct', ((d.str/d.c)*100)).text}">${((d.str/d.c)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-3 font-black ${getKpiTier('whiffPct', ((d.wh/d.sw)*100)).text}">${((d.wh/d.sw)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-3">${((d.iz/d.c)*100||0).toFixed(1)}%</td>
+            <td class="py-3 px-3">${((d.ch/d.oz)*100||0).toFixed(1)}%</td>
           </tr>
         `;
-      }).filter(Boolean);
+      }).join('');
 
-      tbody.innerHTML = rows.join('') || '<tr><td colspan="6" class="text-center py-3 text-slate-500">No pitch data available</td></tr>';
-    }
+      document.getElementById('consistency-tbody').innerHTML = Object.keys(ars).filter(t=>ars[t].c>2).map(t => {
+        const d = ars[t];
+        const vMin=Math.min(...d.v).toFixed(1), vMax=Math.max(...d.v).toFixed(1), vSd=stdDev(d.v).toFixed(2);
+        const sMin=Math.min(...d.s).toFixed(0), sMax=Math.max(...d.s).toFixed(0);
+        const spread = (vMax - vMin).toFixed(1);
+        return `
+          <tr class="hover:bg-slate-800/80 transition-colors">
+            <td class="py-3 px-4 text-white font-bold flex items-center gap-2"><span class="w-2.5 h-2.5 rounded-full" style="background-color:${PITCH_COLORS[t]||'#fff'}; box-shadow: 0 0 10px ${PITCH_COLORS[t]}80"></span>${t}</td>
+            <td class="py-3 px-3">${spread} mph <span class="text-[9px] text-slate-500 font-semibold tracking-wider ml-1">(${vMin}-${vMax})</span></td>
+            <td class="py-3 px-3 font-black tracking-wider ${vSd<1.5?'text-emerald-400':vSd>2.5?'text-rose-500':'text-amber-400'}">${vSd}</td>
+            <td class="py-3 px-3">${sMin} - ${sMax}</td>
+            <td class="py-3 px-3">${stdDev(d.rh).toFixed(2)} ft</td>
+          </tr>`;
+      }).join('');
 
-    /**
-     * Renders Attack Zone Command Breakdown (Heart, Shadow, Chase, Waste)
-     */
-    function renderAttackZoneBreakdown(pitches) {
-      let heart = 0, shadow = 0, chase = 0, waste = 0;
-      const total = pitches.length;
-
-      pitches.forEach(p => {
-        const x = parseFloat(p.PlateLocSide || p.plate_side || 0);
-        const z = parseFloat(p.PlateLocHeight || p.plate_height || 2.5);
-
-        // Heart Zone: Middle of the plate (x in [-0.55, 0.55], z in [2.0, 3.0])
-        if (Math.abs(x) <= 0.55 && z >= 2.0 && z <= 3.0) {
-          heart++;
-        }
-        // Shadow Zone: Edges of strike zone (+/- 1 ball width)
-        else if (Math.abs(x) <= 1.05 && z >= 1.25 && z <= 3.75) {
-          shadow++;
-        }
-        // Chase Zone: Within 1.5 - 2 ball widths of the edge
-        else if (Math.abs(x) <= 1.55 && z >= 0.8 && z <= 4.2) {
-          chase++;
-        }
-        // Waste Zone: Non-competitive
-        else {
-          waste++;
-        }
+      // Leverage
+      const lev={ ahead:{c:0,str:0,sw:0,wh:0, bg:'bg-emerald-950/20 border-emerald-900/30'}, behind:{c:0,str:0,sw:0,wh:0, bg:'bg-rose-950/20 border-rose-900/30'}, even:{c:0,str:0,sw:0,wh:0, bg:'bg-black/30 border-slate-700/50'}, twoK:{c:0,str:0,sw:0,wh:0, bg:'bg-amber-950/20 border-amber-900/30'} };
+      pitches.forEach(p=>{
+        const b=parseInt(p.Balls||0), s=parseInt(p.Strikes||0);
+        let l='even';
+        if((b===0&&s===1)||(b===0&&s===2)||(b===1&&s===2)) l='ahead';
+        else if(b>s) l='behind';
+        lev[l].c++; if(isStrikeEvent(p)) lev[l].str++; if(isSwingEvent(p)) lev[l].sw++; if(isWhiffEvent(p)) lev[l].wh++;
+        if(s===2) { lev.twoK.c++; if(isStrikeEvent(p)) lev.twoK.str++; if(isSwingEvent(p)) lev.twoK.sw++; if(isWhiffEvent(p)) lev.twoK.wh++; }
       });
+      document.getElementById('leverage-cards').innerHTML = [
+        {k:'ahead',n:'Ahead (0-1, 0-2)'},{k:'behind',n:'Behind (1-0, 2-0)'},{k:'even',n:'Even (0-0, 1-1)'},{k:'twoK',n:'2-Strikes (Putaway)'}
+      ].map(x => {
+        const d = lev[x.k];
+        return `
+        <div class="${d.bg} p-4 rounded-xl border flex flex-col justify-center shadow-inner">
+          <div class="text-[10px] text-slate-400 font-black mb-3 uppercase tracking-widest">${x.n}</div>
+          <div class="text-2xl font-black text-white leading-tight font-mono">${d.c?((d.str/d.c)*100).toFixed(0):0}% <span class="text-[9px] font-semibold uppercase tracking-widest text-slate-500">Strike</span></div>
+          <div class="text-sm text-amber-400 font-black mt-2 font-mono drop-shadow-sm">${d.sw?((d.wh/d.sw)*100).toFixed(0):0}% <span class="text-[9px] font-semibold uppercase tracking-widest text-slate-500">Whiff</span></div>
+        </div>`;
+      }).join('');
 
-      const heartPct = total ? ((heart / total) * 100).toFixed(1) : '0.0';
-      const shadowPct = total ? ((shadow / total) * 100).toFixed(1) : '0.0';
-      const chasePct = total ? ((chase / total) * 100).toFixed(1) : '0.0';
-      const wastePct = total ? ((waste / total) * 100).toFixed(1) : '0.0';
+      // Attack Zones
+      let ht=0, sh=0, ch=0, wa=0;
+      pitches.forEach(p=>{
+        const x=Math.abs(parseFloat(p.PlateLocSide||0)), z=parseFloat(p.PlateLocHeight||0);
+        if(x<0.28 && z>1.83 && z<3.16) ht++;
+        else if(x<1.11 && z>1.16 && z<3.83) sh++;
+        else if(x<1.66 && z>0.5 && z<4.5) ch++;
+        else wa++;
+      });
+      const tot = ht+sh+ch+wa || 1;
+      const htP = ((ht/tot)*100).toFixed(1);
+      const shP = ((sh/tot)*100).toFixed(1);
+      const chP = ((ch/tot)*100).toFixed(1);
+      const waP = ((wa/tot)*100).toFixed(1);
 
-      const grid = document.getElementById('attack-zone-kpi-grid');
-      if (grid) {
-        grid.innerHTML = `
-          <div class="bg-rose-950/40 border border-rose-900/60 rounded-lg p-2.5">
-            <div class="text-[10px] uppercase font-bold text-rose-300">Heart %</div>
-            <div class="text-xl font-black font-mono text-rose-400">${heartPct}%</div>
-            <div class="text-[10px] text-slate-400 font-mono">${heart} pitches</div>
+      document.getElementById('attack-zone-bars').innerHTML = `
+        <div class="h-8 w-full flex rounded-xl overflow-hidden shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] border border-slate-700/80">
+          <div class="bg-rose-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(244,63,94,0.5)] transition-all" style="width: ${htP}%"></div>
+          <div class="bg-emerald-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(16,185,129,0.5)] transition-all" style="width: ${shP}%"></div>
+          <div class="bg-amber-500 flex items-center justify-center text-[10px] font-black text-black shadow-[0_0_10px_rgba(245,158,11,0.5)] transition-all" style="width: ${chP}%"></div>
+          <div class="bg-slate-500 flex items-center justify-center text-[10px] font-black text-black transition-all" style="width: ${waP}%"></div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-rose-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> Heart</span>
+            <span class="font-black text-white text-lg drop-shadow-md">${htP}%</span>
           </div>
-          <div class="bg-emerald-950/40 border border-emerald-900/60 rounded-lg p-2.5">
-            <div class="text-[10px] uppercase font-bold text-emerald-300">Shadow %</div>
-            <div class="text-xl font-black font-mono text-emerald-400">${shadowPct}%</div>
-            <div class="text-[10px] text-slate-400 font-mono">${shadow} pitches</div>
+          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-emerald-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> Shadow</span>
+            <span class="font-black text-white text-lg drop-shadow-md">${shP}%</span>
           </div>
-          <div class="bg-sky-950/40 border border-sky-900/60 rounded-lg p-2.5">
-            <div class="text-[10px] uppercase font-bold text-sky-300">Chase %</div>
-            <div class="text-xl font-black font-mono text-sky-400">${chasePct}%</div>
-            <div class="text-[10px] text-slate-400 font-mono">${chase} pitches</div>
+          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-amber-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> Chase</span>
+            <span class="font-black text-white text-lg drop-shadow-md">${chP}%</span>
           </div>
-          <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-2.5">
-            <div class="text-[10px] uppercase font-bold text-slate-400">Waste %</div>
-            <div class="text-xl font-black font-mono text-slate-300">${wastePct}%</div>
-            <div class="text-[10px] text-slate-500 font-mono">${waste} pitches</div>
+          <div class="flex flex-col bg-black/40 p-3 rounded-lg border border-slate-700/50 shadow-inner">
+            <span class="text-slate-400 font-black tracking-widest uppercase flex items-center gap-1.5 text-[9px] mb-1"><span class="w-2 h-2 rounded-full bg-slate-500"></span> Waste</span>
+            <span class="font-black text-white text-lg drop-shadow-md">${waP}%</span>
           </div>
-        `;
-      }
+        </div>
+      `;
 
-      const bar = document.getElementById('attack-distribution-bar');
-      const summary = document.getElementById('attack-distribution-summary');
-      if (bar) {
-        bar.innerHTML = `
-          <div style="width: ${heartPct}%" class="bg-rose-500 h-full" title="Heart: ${heartPct}%"></div>
-          <div style="width: ${shadowPct}%" class="bg-emerald-500 h-full" title="Shadow: ${shadowPct}%"></div>
-          <div style="width: ${chasePct}%" class="bg-sky-500 h-full" title="Chase: ${chasePct}%"></div>
-          <div style="width: ${wastePct}%" class="bg-slate-600 h-full" title="Waste: ${wastePct}%"></div>
-        `;
-      }
-      if (summary) {
-        summary.textContent = `${shadowPct}% Shadow (Command) | ${heartPct}% Heart (Damage)`;
-      }
+      drawStrikeZonePlot();
+      renderSprayChart();
+      renderMovementChart();
+      renderSeparationChart();
     }
 
-    /**
-     * Renders Diamond Spray Chart of Balls In Play
-     */
-    function renderBattedBallSprayChart(pitches) {
-      const canvas = document.getElementById('battedBallCanvas');
-      const noMsg = document.getElementById('no-batted-balls-msg');
-      if (!canvas) return;
+    function drawStrikeZonePlot() {
+      const c = document.getElementById('strikeZoneCanvas');
+      if(!c) return;
+      const ctx = c.getContext('2d');
+      const w=c.clientWidth, h=c.clientHeight;
+      c.width=w*2; c.height=h*2; ctx.scale(2,2);
+      ctx.clearRect(0,0,w,h);
 
-      const ctx = canvas.getContext('2d');
-      const w = canvas.clientWidth || 300;
-      const h = canvas.clientHeight || 200;
-      canvas.width = w * window.devicePixelRatio;
-      canvas.height = h * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-      ctx.clearRect(0, 0, w, h);
-
-      // Home plate location at bottom center
-      const homeX = w / 2;
-      const homeY = h - 20;
-      const fieldRadius = h - 35;
-
-      // Draw outfield grass arc
-      ctx.beginPath();
-      ctx.arc(homeX, homeY, fieldRadius, -Math.PI * 0.8, -Math.PI * 0.2, false);
-      ctx.lineTo(homeX, homeY);
-      ctx.closePath();
-      ctx.fillStyle = '#0f172a';
-      ctx.fill();
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Draw foul lines
-      const leftFoulX = homeX + fieldRadius * Math.cos(-Math.PI * 0.75);
-      const leftFoulY = homeY + fieldRadius * Math.sin(-Math.PI * 0.75);
-      const rightFoulX = homeX + fieldRadius * Math.cos(-Math.PI * 0.25);
-      const rightFoulY = homeY + fieldRadius * Math.sin(-Math.PI * 0.25);
-
-      ctx.beginPath();
-      ctx.moveTo(homeX, homeY);
-      ctx.lineTo(leftFoulX, leftFoulY);
-      ctx.moveTo(homeX, homeY);
-      ctx.lineTo(rightFoulX, rightFoulY);
-      ctx.strokeStyle = '#475569';
-      ctx.lineWidth = 1.5;
-      ctx.stroke();
-
-      // Draw infield diamond
-      const baseDist = fieldRadius * 0.35;
-      const secondX = homeX;
-      const secondY = homeY - baseDist * 1.414;
-      const firstX = homeX + baseDist;
-      const firstY = homeY - baseDist;
-      const thirdX = homeX - baseDist;
-      const thirdY = homeY - baseDist;
-
-      ctx.beginPath();
-      ctx.moveTo(homeX, homeY);
-      ctx.lineTo(firstX, firstY);
-      ctx.lineTo(secondX, secondY);
-      ctx.lineTo(thirdX, thirdY);
-      ctx.closePath();
-      ctx.strokeStyle = '#334155';
+      const cx=x=>((x+2.5)/5.0)*w, cy=y=>h-((y/5.0)*h);
+      
+      // --- Draw Pro Axes & Grid ---
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
       ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Filter in play pitches
-      const inPlay = pitches.filter(p => {
-        const res = String(p.PitchCall || p.PlayResult || '').toLowerCase();
-        return res.includes('inplay') || res.includes('in play') || p.ExitSpeed > 0;
-      });
-
-      if (inPlay.length === 0) {
-        if (noMsg) noMsg.classList.remove('hidden');
-        return;
-      } else {
-        if (noMsg) noMsg.classList.add('hidden');
+      ctx.font = '10px ui-monospace, SFMono-Regular, monospace';
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.7)';
+      
+      // Vertical grid (Sides: -2 to 2 ft)
+      ctx.textAlign = 'center';
+      for(let x = -2; x <= 2; x+=1) {
+        const px = cx(x);
+        ctx.beginPath(); ctx.moveTo(px, 0); ctx.lineTo(px, h); ctx.stroke();
+        if(x !== 0) ctx.fillText(x > 0 ? `+${x}` : x, px, h - 8);
+        else ctx.fillText('0', px, h - 8);
+      }
+      
+      // Horizontal grid (Height: 1 to 5 ft)
+      ctx.textAlign = 'left';
+      for(let y = 1; y <= 5; y+=1) {
+        const py = cy(y);
+        ctx.beginPath(); ctx.moveTo(0, py); ctx.lineTo(w, py); ctx.stroke();
+        ctx.fillText(y, 8, py - 5);
       }
 
-      // Plot contact points based on bearing/distance or launch angle
-      inPlay.forEach((p, idx) => {
-        const exitV = parseFloat(p.ExitSpeed || 85 + (idx % 15));
-        const angle = parseFloat(p.Bearing || (Math.sin(idx * 2) * 35)); // -45 deg (LF) to +45 deg (RF)
-        const distRatio = Math.min(Math.max((exitV - 50) / 60, 0.2), 0.95);
+      // Ground plane
+      const gradG = ctx.createLinearGradient(0, cy(0), 0, h);
+      gradG.addColorStop(0, 'rgba(255,255,255,0.05)');
+      gradG.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradG; ctx.fillRect(0, cy(0.1), w, h);
 
-        // Convert angle to canvas polar coords
-        const rad = (-90 + angle) * (Math.PI / 180);
-        const ptX = homeX + (fieldRadius * distRatio) * Math.cos(rad);
-        const ptY = homeY + (fieldRadius * distRatio) * Math.sin(rad);
+      // Home Plate
+      ctx.beginPath();
+      ctx.moveTo(cx(-0.71), cy(0.1)); 
+      ctx.lineTo(cx(0.71), cy(0.1));
+      ctx.lineTo(cx(0.71), cy(0.3));
+      ctx.lineTo(cx(0), cy(0.5));
+      ctx.lineTo(cx(-0.71), cy(0.3));
+      ctx.closePath();
+      ctx.fillStyle='rgba(255,255,255,0.1)'; ctx.fill();
+      ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
 
-        ctx.beginPath();
-        ctx.arc(ptX, ptY, 4.5, 0, Math.PI * 2);
-        ctx.fillStyle = exitV >= 95 ? '#f43f5e' : '#38bdf8';
-        ctx.fill();
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+      // Zone Box with Glow
+      ctx.fillStyle='rgba(15,23,42,0.6)'; ctx.fillRect(cx(-0.83), cy(3.5), cx(0.83)-cx(-0.83), cy(1.5)-cy(3.5));
+      ctx.shadowColor = '#38bdf8'; ctx.shadowBlur = 10;
+      ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2; ctx.strokeRect(cx(-0.83), cy(3.5), cx(0.83)-cx(-0.83), cy(1.5)-cy(3.5));
+      ctx.shadowBlur = 0; // reset
+      
+      // Shadow Buffer
+      ctx.setLineDash([4, 4]); ctx.strokeStyle='rgba(148, 163, 184, 0.4)'; ctx.lineWidth=1;
+      ctx.strokeRect(cx(-1.11), cy(3.83), cx(1.11)-cx(-1.11), cy(1.16)-cy(3.83));
+      ctx.setLineDash([]);
+
+      let pList = getActivePitches();
+      if(AppState.zoneFilter==='whiffs') pList=pList.filter(p=>isWhiffEvent(p));
+      
+      pList.forEach(p=>{
+        const px = cx(parseFloat(p.PlateLocSide||0)), py = cy(parseFloat(p.PlateLocHeight||2.5));
+        const color = PITCH_COLORS[getPitchType(p)]||'#fff';
+        
+        if(isWhiffEvent(p)) { 
+          ctx.beginPath(); ctx.arc(px,py,12,0,Math.PI*2); 
+          const wg = ctx.createRadialGradient(px,py,0,px,py,12);
+          wg.addColorStop(0, 'rgba(251, 191, 36, 0.6)'); wg.addColorStop(1, 'transparent');
+          ctx.fillStyle = wg; ctx.fill();
+          ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.strokeStyle='#fcd34d'; ctx.lineWidth=1.5; ctx.stroke(); 
+        }
+        
+        // Pitch Dot (Glowing sphere)
+        ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2); 
+        const pg = ctx.createRadialGradient(px-1,py-1,0,px,py,4.5);
+        pg.addColorStop(0, '#ffffff'); pg.addColorStop(0.3, color); pg.addColorStop(1, '#000000');
+        ctx.fillStyle=pg; ctx.fill();
+        ctx.shadowColor = color; ctx.shadowBlur = 6;
+        ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=0.5; ctx.stroke();
+        ctx.shadowBlur = 0;
       });
     }
-<!-- ... existing code ... -->
+
+    function renderSprayChart() {
+      const c = document.getElementById('sprayCanvas');
+      if(!c) return;
+      const ctx = c.getContext('2d');
+      const w=c.clientWidth, h=c.clientHeight;
+      c.width=w*2; c.height=h*2; ctx.scale(2,2);
+      ctx.clearRect(0,0,w,h);
+      
+      const homeX = w/2, homeY = h-15;
+      
+      // Outfield Grass pattern
+      ctx.fillStyle = '#14231b'; ctx.fillRect(0,0,w,h);
+      ctx.beginPath(); ctx.arc(homeX, homeY, h-20, Math.PI, 0); ctx.fillStyle='#182d22'; ctx.fill();
+      
+      // Infield Dirt Cutout
+      ctx.beginPath(); ctx.arc(homeX, homeY-65, 55, 0, Math.PI*2); ctx.fillStyle='rgba(163, 110, 68, 0.2)'; ctx.fill();
+      
+      // Foul Lines
+      ctx.beginPath(); ctx.moveTo(homeX, homeY); ctx.lineTo(homeX - (h-20), homeY - (h-20));
+      ctx.moveTo(homeX, homeY); ctx.lineTo(homeX + (h-20), homeY - (h-20));
+      ctx.strokeStyle='rgba(255,255,255,0.4)'; ctx.lineWidth=1.5; ctx.stroke();
+      
+      // Bases
+      ctx.fillStyle='rgba(255,255,255,0.8)';
+      const drawBase = (x,y) => { ctx.beginPath(); ctx.moveTo(x,y+3); ctx.lineTo(x-3,y); ctx.lineTo(x,y-3); ctx.lineTo(x+3,y); ctx.closePath(); ctx.fill(); }
+      drawBase(homeX, homeY); // home
+      drawBase(homeX, homeY-130); // second
+      drawBase(homeX-65, homeY-65); // third
+      drawBase(homeX+65, homeY-65); // first
+      
+      getActivePitches().forEach(p => {
+        const ev = parseFloat(p.ExitSpeed||0), ang = parseFloat(p.Angle||0);
+        if(ev > 0) {
+          const dist = (ev/110) * (h-35); 
+          const rad = (ang - 90) * (Math.PI/180);
+          const px = homeX + Math.cos(rad)*dist, py = homeY + Math.sin(rad)*dist;
+          
+          ctx.beginPath(); ctx.arc(px,py,4.5,0,Math.PI*2);
+          const color = ev >= 95 ? '#f43f5e' : '#38bdf8';
+          ctx.fillStyle = color; ctx.fill();
+          ctx.shadowColor = color; ctx.shadowBlur = 8;
+          ctx.strokeStyle = '#ffffff'; ctx.lineWidth=1; ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+      });
+    }
+
+    function renderMovementChart() {
+      if(AppState.charts.movement) AppState.charts.movement.destroy();
+      const ds = {};
+      getActivePitches().forEach(p=>{
+        const t=getPitchType(p), hb=parseFloat(p.HorzBreak), ivb=parseFloat(p.InducedVertBreak);
+        if(!isNaN(hb)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:hb,y:ivb}); }
+      });
+      
+      const zeroGrid = {
+        color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)',
+        lineWidth: c => c.tick.value === 0 ? 2.5 : 1,
+        drawBorder: false
+      };
+      
+      AppState.charts.movement = new Chart(document.getElementById('movementChartCanvas'), {
+        type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
+        options: { 
+          responsive:true, maintainAspectRatio:false, 
+          plugins:{
+            legend:{display:false},
+            tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 }
+          }, 
+          scales:{ x:{min:-25,max:25,grid:zeroGrid, border:{dash:[4,4]}, title:{display:true,text:'Horizontal Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}}, 
+                   y:{min:-25,max:25,grid:zeroGrid, border:{dash:[4,4]}, title:{display:true,text:'Induced Vertical Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}} } 
+        }
+      });
+    }
+
+    function renderSeparationChart() {
+      if(AppState.charts.separation) AppState.charts.separation.destroy();
+      const ds = {};
+      getActivePitches().forEach(p=>{
+        const t=getPitchType(p), v=parseFloat(p.RelSpeed), ivb=parseFloat(p.InducedVertBreak);
+        if(!isNaN(v)&&!isNaN(ivb)){ if(!ds[t]) ds[t]=[]; ds[t].push({x:v,y:ivb}); }
+      });
+      
+      const zeroGrid = {
+        color: c => c.tick.value === 0 ? 'rgba(255,255,255,0.9)' : 'rgba(51, 65, 85, 0.3)',
+        lineWidth: c => c.tick.value === 0 ? 2.5 : 1,
+        drawBorder: false
+      };
+      
+      AppState.charts.separation = new Chart(document.getElementById('pitchSepCanvas'), {
+        type: 'scatter', data: { datasets: Object.keys(ds).map(t=>({ label:t, data:ds[t], backgroundColor:PITCH_COLORS[t], pointRadius:4.5, hoverRadius: 6, borderColor: 'rgba(255,255,255,0.3)', borderWidth: 1 })) },
+        options: { 
+          responsive:true, maintainAspectRatio:false, 
+          plugins:{
+            legend:{display:false},
+            tooltip: { backgroundColor: 'rgba(15,23,42,0.9)', titleColor: '#fff', bodyFont: {family: 'monospace'}, padding: 10, borderColor: '#334155', borderWidth: 1 }
+          }, 
+          scales:{ x:{grid:{color: 'rgba(51, 65, 85, 0.3)', drawBorder: false}, border:{display:false}, title:{display:true,text:'Velocity (mph)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}}, 
+                   y:{grid:zeroGrid, border:{display:false}, title:{display:true,text:'Induced Vertical Break (in)',color:'#64748b',font:{size:10, weight:'bold', family:'monospace'}}} } 
+        }
+      });
+    }
+
+    // Leaderboard Logic
+    function sortLeaderboard(key) {
+      if(AppState.leaderboardSort.key === key) AppState.leaderboardSort.asc = !AppState.leaderboardSort.asc;
+      else { AppState.leaderboardSort.key = key; AppState.leaderboardSort.asc = (key==='name'||key==='hand'); }
+      
+      const labels = { name:'Pitcher', hand:'Throws', total:'Pitches', fbVelo:'Max Velo', strikePct:'Strike %', whiffPct:'Whiff %', kbb:'K:BB' };
+      document.getElementById('sort-indicator').innerHTML = `Sorted by: ${labels[key]} (${AppState.leaderboardSort.asc ? 'Asc' : 'Desc'})`;
+      
+      document.querySelectorAll('.sort-icon').forEach(el => { el.classList.remove('fa-sort-up','fa-sort-down','active'); el.classList.add('fa-sort'); });
+      const activeIcon = document.getElementById(`sort-icon-${key}`);
+      activeIcon.classList.remove('fa-sort');
+      activeIcon.classList.add(AppState.leaderboardSort.asc ? 'fa-sort-up' : 'fa-sort-down', 'active');
+      
+      renderLeaderboard();
+    }
+
+    function renderLeaderboard() {
+      let rows = Object.keys(AppState.pitchers).map(n => {
+        const po = AppState.pitchers[n];
+        const m = computeMetrics(po.allPitches);
+        return { name: n, hand: po.hand, total: m.total, fbVelo: parseFloat(m.fbVelo), strikePct: parseFloat(m.strikePct), whiffPct: parseFloat(m.whiffPct), kbb: parseFloat(m.kbb), rawM: m };
+      });
+
+      const { key, asc } = AppState.leaderboardSort;
+      rows.sort((a,b) => {
+        let va = a[key], vb = b[key];
+        if(typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return asc ? (va - vb) : (vb - va);
+      });
+
+      document.getElementById('leaderboard-tbody').innerHTML = rows.map(r => `
+        <tr class="hover:bg-slate-800/80 transition-colors">
+          <td class="py-4 px-5 text-white font-bold tracking-wide">${r.name}</td>
+          <td class="py-4 px-5 text-slate-400 font-semibold">${r.hand}</td>
+          <td class="py-4 px-5">${r.total}</td>
+          <td class="py-4 px-5 text-sky-400 font-black">${r.rawM.fbVelo}</td>
+          <td class="py-4 px-5 font-black ${getKpiTier('strikePct',r.rawM.strikePct).text}">${r.rawM.strikePct}%</td>
+          <td class="py-4 px-5 font-black ${getKpiTier('whiffPct',r.rawM.whiffPct).text}">${r.rawM.whiffPct}%</td>
+          <td class="py-4 px-5 font-black ${getKpiTier('kbb',r.rawM.kbb).text}">${r.rawM.kbb}</td>
+          <td class="py-4 px-5 text-right">
+            <button onclick="setPitcherView('${r.name}')" class="px-4 py-1.5 bg-sky-600 hover:bg-sky-500 rounded-lg text-xs font-black tracking-widest text-white transition shadow-[0_0_10px_rgba(2,132,199,0.5)] border border-sky-500">VIEW</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openUploadModal() { document.getElementById('uploadModal').classList.remove('hidden'); }
+    function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+    function handleFileSelect(e) { 
+      if(e.target.files.length) {
+        Papa.parse(e.target.files[0], { 
+          header:true, skipEmptyLines: true,
+          complete: r => { 
+            AppState.allPitches=r.data; 
+            localStorage.setItem('franilitics_pitches', JSON.stringify(r.data)); 
+            processPitchesData(); 
+            closeUploadModal(); 
+            setListView(); 
+          }
+        }); 
+      }
+    }
+    
+    function loadSampleData() {
+      const p=[]; 
+      const profiles = [
+        {n:'Cole Parker', h:'RHP', fbV:94.5, slV:84, chV:86, cbV: 79},
+        {n:'Marcus Vance', h:'LHP', fbV:91.2, slV:81, chV:83, cbV: 76},
+        {n:'Liam Bennett', h:'RHP', fbV:96.8, slV:87, chV:89, cbV: 82}
+      ];
+      
+      profiles.forEach(pt => {
+        for(let i=0;i<120;i++){
+          const rand = Math.random();
+          let type = 'Four-Seam', velo = pt.fbV, ivb = 16, hb = pt.h==='RHP'? 8 : -8, spin = 2350, side = (Math.random()-0.5)*2.5, ht = 1.5+Math.random()*2.5;
+          
+          if(rand > 0.5 && rand <= 0.8) { 
+            type = 'Slider'; velo = pt.slV; ivb = 2; hb = pt.h==='RHP'? -8 : 8; spin = 2600; 
+            side = pt.h==='RHP' ? (Math.random()*1.5) : (-Math.random()*1.5); ht = 0.5+Math.random()*2.0; 
+          } else if(rand > 0.8 && rand <= 0.95) { 
+            type = 'Changeup'; velo = pt.chV; ivb = 6; hb = pt.h==='RHP'? 14 : -14; spin = 1800; 
+            side = pt.h==='RHP' ? (-0.5-Math.random()) : (0.5+Math.random()); ht = 1.0+Math.random()*1.5; 
+          } else if(rand > 0.95) { 
+            type = 'Curveball'; velo = pt.cbV; ivb = -8; hb = pt.h==='RHP'? -6 : 6; spin = 2800; 
+            ht = 0.0+Math.random()*1.5; 
+          }
+
+          velo += (Math.random()-0.5)*2.5;
+          ivb += (Math.random()-0.5)*3;
+          hb += (Math.random()-0.5)*3;
+          spin += (Math.random()-0.5)*150;
+          const relHt = 5.8 + (Math.random()-0.5)*0.2;
+          
+          let call = 'BallCalled'; let exit = 0; let ang = 0;
+          const x = Math.abs(side), z = ht;
+          const inZ = x<=0.83 && z>=1.5 && z<=3.5;
+          
+          if(inZ) {
+            const swingRand = Math.random();
+            if(swingRand < 0.3) call = 'StrikeCalled';
+            else if(swingRand < 0.5) call = 'StrikeSwinging';
+            else if(swingRand < 0.7) call = 'Foul';
+            else { call = 'InPlay'; exit = 75 + Math.random()*35; ang = (Math.random()-0.5)*60; }
+          } else {
+            if(Math.random() < 0.2) call = 'StrikeSwinging';
+          }
+
+          p.push({
+            Pitcher:pt.n, PitcherThrows:pt.h, Date:'2026-03-24', AutoPitchType:type, 
+            RelSpeed:velo, InducedVertBreak:ivb, HorzBreak:hb, SpinRate:spin, 
+            PlateLocSide:side, PlateLocHeight:ht, PitchCall:call, RelHeight:relHt,
+            ExitSpeed:exit, Angle:ang, Balls: Math.floor(Math.random()*4), Strikes: Math.floor(Math.random()*3)
+          });
+        }
+      });
+      
+      AppState.allPitches=p; 
+      processPitchesData(); 
+      sortLeaderboard('strikePct');
+      setListView();
+    }
+  </script>
+
+  <!-- FIREBASE CLOUD SYNC MODULE -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'franilitics-trackman-portal';
+    const fbConfigStr = typeof __firebase_config !== 'undefined' ? __firebase_config : null;
+    const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+    
+    if (fbConfigStr) {
+      try {
+        const firebaseConfig = JSON.parse(fbConfigStr);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        const authPromise = initialToken ? signInWithCustomToken(auth, initialToken) : signInAnonymously(auth);
+        
+        authPromise.then((userCred) => {
+          const statusEl = document.getElementById('cloud-status');
+          statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Sync: Live';
+          statusEl.className = 'px-3 py-2 rounded-lg text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 flex items-center gap-2 shadow-inner uppercase tracking-widest mr-2 hidden md:flex';
+
+          // Override local file handler to push to Cloud Database
+          window.handleFileSelect = function(e) {
+            if(e.target.files.length) {
+              statusEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+              Papa.parse(e.target.files[0], { 
+                header:true, skipEmptyLines: true,
+                complete: async r => { 
+                  const timestampId = Date.now();
+                  
+                  // Chunk the array into smaller sizes to stay safely under 1MB Firestore document limit
+                  // TrackMan CSVs are very wide, so we use a small chunk size (150 rows)
+                  const CHUNK_SIZE = 150;
+                  const chunks = [];
+                  for (let i = 0; i < r.data.length; i += CHUNK_SIZE) {
+                    chunks.push(r.data.slice(i, i + CHUNK_SIZE));
+                  }
+                  
+                  try {
+                    const uploadPromises = chunks.map((chunk, i) => {
+                      const uploadId = `csv_${timestampId}_part${i}`;
+                      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'csv_uploads', uploadId);
+                      return setDoc(docRef, { pitches: chunk, timestamp: timestampId, part: i, totalParts: chunks.length });
+                    });
+                    
+                    await Promise.all(uploadPromises);
+                    
+                    window.closeUploadModal();
+                    statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Sync Complete';
+                    setTimeout(() => statusEl.innerHTML = '<i class="fa-solid fa-cloud-check"></i> Cloud Sync: Live', 3000);
+                  } catch (err) {
+                    console.error("Firebase upload error:", err);
+                    statusEl.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sync Error';
+                  }
+                }
+              }); 
+            }
+          };
+
+          // Listen globally for newly uploaded CSVs in the cloud
+          const uploadsRef = collection(db, 'artifacts', appId, 'public', 'data', 'csv_uploads');
+          onSnapshot(uploadsRef, (snapshot) => {
+            if (!snapshot.empty) {
+              let allCloudPitches = [];
+              snapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.pitches && Array.isArray(data.pitches)) {
+                  allCloudPitches = allCloudPitches.concat(data.pitches);
+                }
+              });
+              
+              if(allCloudPitches.length > 0) {
+                // Update global data from cloud
+                window.AppState.allPitches = allCloudPitches;
+                window.processPitchesData();
+                
+                // Refresh the active view
+                if (!document.getElementById('view-roster').classList.contains('hidden')) {
+                  window.renderRosterList();
+                } else if (!document.getElementById('view-master').classList.contains('hidden')) {
+                  window.renderLeaderboard();
+                } else {
+                  window.renderProfile();
+                }
+              }
+            }
+          }, (err) => {
+             console.error("Firestore listen error", err);
+          });
+
+        }).catch(err => console.error("Auth error:", err));
+      } catch(e) { console.error("Firebase init failed", e); }
+    }
+  </script>
+</body>
+</html>
